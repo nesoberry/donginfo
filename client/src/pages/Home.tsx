@@ -196,7 +196,7 @@ export default function Home() {
                             if (event.mapLink) window.open(event.mapLink, "_blank");
                           }}
                         >
-                          배치도
+                          행사안내
                         </Button>
                       )}
                     </div>
