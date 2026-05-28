@@ -209,7 +209,7 @@ export default function EventDetail() {
                 {event.mapLink && (
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                      배치도
+                      행사안내
                     </h3>
                     <Button
                       variant="outline"
@@ -218,7 +218,7 @@ export default function EventDetail() {
                         if (event.mapLink) window.open(event.mapLink, "_blank");
                       }}
                     >
-                      배치도 보기
+                      행사안내 보기
                     </Button>
                   </div>
                 )}
