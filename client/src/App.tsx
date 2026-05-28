@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import EventDetail from "./pages/EventDetail";
 import AdminPanel from "./pages/AdminPanel";
+import NotificationsPage from "./pages/NotificationsPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -15,6 +16,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/event/:id"} component={EventDetail} />
       <Route path={"/admin"} component={AdminPanel} />
+      <Route path={"/notifications"} component={NotificationsPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
