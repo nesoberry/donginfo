@@ -15,28 +15,22 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState<string>("");
+
 
   // 행사 목록 조회
   const { data: events = [], isLoading } = trpc.events.list.useQuery({
     search: searchTerm || undefined,
-    region: selectedRegion || undefined,
   });
 
-  // 지역 목록 추출
-  const regions = useMemo(() => {
-    const uniqueRegions = new Set(events.map(e => e.region).filter(Boolean) as string[]);
-    return Array.from(uniqueRegions).sort();
-  }, [events]) as string[];
+
 
   // 필터링된 행사 목록
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      if (selectedRegion && event.region !== selectedRegion) return false;
-      if (searchTerm && !event.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (searchTerm && !event.name.toLowerCase().includes(searchTerm.toLowerCase()) && !event.location.toLowerCase().includes(searchTerm.toLowerCase())) return false;
       return true;
     });
-  }, [events, selectedRegion, searchTerm]);
+  }, [events, searchTerm]);
 
   const handleEventClick = (eventId: number) => {
     setLocation(`/event/${eventId}` as string);
@@ -89,35 +83,12 @@ export default function Home() {
           {/* 검색 입력 */}
           <div className="mb-6">
             <Input
-              placeholder="행사명으로 검색..."
+              placeholder="행사명, 장소명으로 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full max-w-md"
             />
           </div>
-
-          {/* 지역 필터 */}
-          {regions.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedRegion === "" ? "default" : "outline"}
-                onClick={() => setSelectedRegion("")}
-                size="sm"
-              >
-                전체
-              </Button>
-              {regions.map((region) => (
-                <Button
-                  key={region}
-                  variant={selectedRegion === region ? "default" : "outline"}
-                  onClick={() => setSelectedRegion(region)}
-                  size="sm"
-                >
-                  {region}
-                </Button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* 행사 목록 */}
@@ -129,7 +100,7 @@ export default function Home() {
           ) : filteredEvents.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">
-                {searchTerm || selectedRegion ? "검색 결과가 없습니다" : "등록된 행사가 없습니다"}
+                {searchTerm ? "검색 결과가 없습니다" : "등록된 행사가 없습니다"}
               </p>
             </div>
           ) : (
