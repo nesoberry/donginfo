@@ -142,29 +142,33 @@ export async function listEvents(filters?: {
   try {
     const conditions = [];
 
+    // 기본값: 현재 시점에서 1년 후까지의 행사만 표시
+    const now = new Date();
+    const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+    const startDate = filters?.startDate || now;
+    const endDate = filters?.endDate || oneYearLater;
+
     if (filters?.region) {
       conditions.push(eq(events.region, filters.region));
     }
     if (filters?.search) {
       conditions.push(like(events.name, `%${filters.search}%`));
     }
-    if (filters?.startDate) {
-      conditions.push(gte(events.eventDate, filters.startDate));
-    }
-    if (filters?.endDate) {
-      conditions.push(lte(events.eventDate, filters.endDate));
-    }
+    
+    // 날짜 범위 필터 적용
+    conditions.push(gte(events.eventDate, startDate));
+    conditions.push(lte(events.eventDate, endDate));
 
     let query = db.select().from(events);
     if (conditions.length > 0) {
       query = query.where(and(...conditions)) as any;
     }
 
-    const result = await (query as any).orderBy(asc(events.eventDate));
+    const result = await query.orderBy(asc(events.eventDate));
     return result;
   } catch (error) {
     console.error("[Database] Failed to list events:", error);
-    throw error;
+    return [];
   }
 }
 
