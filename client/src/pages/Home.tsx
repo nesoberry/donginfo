@@ -52,6 +52,14 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-foreground">동인 행사 일정</h1>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setLocation("/calendar" as string)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              캘린더
+            </Button>
             {isAuthenticated && user?.role === "admin" && (
               <Button
                 onClick={handleAdminClick}
