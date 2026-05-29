@@ -38,6 +38,7 @@ export const events = mysqlTable("events", {
   ticketLink: varchar("ticketLink", { length: 512 }), // 예매처 링크
   mapLink: varchar("mapLink", { length: 512 }), // 배치도 링크
   region: varchar("region", { length: 100 }), // 지역 (서울, 부산 등)
+  allowsCosplay: mysqlEnum("allowsCosplay", ["yes", "no", "limited"]).default("no").notNull(), // 코스프레 가능 여부 (yes: 가능, no: 불가, limited: 제한)
   createdBy: int("createdBy").notNull(), // 생성자 (admin user id)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, LayoutGrid } from "lucide-react";
+import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
@@ -15,6 +15,7 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showCosplayOnly, setShowCosplayOnly] = useState(false);
 
 
   // 행사 목록 조회
@@ -28,9 +29,10 @@ export default function Home() {
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
       if (searchTerm && !event.name.toLowerCase().includes(searchTerm.toLowerCase()) && !event.location.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (showCosplayOnly && event.allowsCosplay === 'no') return false;
       return true;
     });
-  }, [events, searchTerm]);
+  }, [events, searchTerm, showCosplayOnly]);
 
   const handleEventClick = (eventId: number) => {
     setLocation(`/event/${eventId}` as string);
@@ -80,14 +82,22 @@ export default function Home() {
             </p>
           </div>
 
-          {/* 검색 입력 */}
-          <div className="mb-6">
+          {/* 검색 입력 및 코스프레 필터 */}
+          <div className="mb-6 flex flex-col gap-4">
             <Input
               placeholder="행사명, 장소명으로 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full max-w-md"
             />
+            <Button
+              variant={showCosplayOnly ? "default" : "outline"}
+              onClick={() => setShowCosplayOnly(!showCosplayOnly)}
+              className="w-fit"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              {showCosplayOnly ? "코스프레 가능 행사만" : "코스프레 가능 행사 보기"}
+            </Button>
           </div>
         </div>
 
@@ -100,7 +110,7 @@ export default function Home() {
           ) : filteredEvents.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">
-                {searchTerm ? "검색 결과가 없습니다" : "등록된 행사가 없습니다"}
+                {searchTerm || showCosplayOnly ? "검색 결과가 없습니다" : "등록된 행사가 없습니다"}
               </p>
             </div>
           ) : (
@@ -115,9 +125,24 @@ export default function Home() {
                     <h3 className="event-card-title group-hover:text-primary transition-colors">
                       {event.name}
                     </h3>
-                    {event.region && (
-                      <Badge className="mt-2">{event.region}</Badge>
-                    )}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {event.region && (
+                        <Badge variant="secondary" className="text-xs">
+                          {event.region}
+                        </Badge>
+                      )}
+                      {event.allowsCosplay === 'yes' && (
+                        <Badge className="text-xs bg-primary text-primary-foreground">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          코스프레 가능
+                        </Badge>
+                      )}
+                      {event.allowsCosplay === 'limited' && (
+                        <Badge variant="outline" className="text-xs">
+                          코스프레 제한
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   {event.description && (

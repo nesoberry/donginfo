@@ -1,0 +1,1 @@
+ALTER TABLE `events` ADD `allowsCosplay` enum('yes','no','limited') DEFAULT 'no' NOT NULL;

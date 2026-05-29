@@ -15,6 +15,13 @@
       "when": 1779938360230,
       "tag": "0001_brief_menace",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1780037329733,
+      "tag": "0002_wild_onslaught",
+      "breakpoints": true
     }
   ]
 }
