@@ -10,6 +10,7 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -50,6 +51,14 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <LayoutGrid className="w-8 h-8 text-primary" />
             <h1 className="text-2xl font-bold text-foreground">동인 행사 일정</h1>
+            <div className="w-full flex justify-center p-4 bg-yellow-100 border-b-4 border-yellow-400 mb-4">
+        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <GoogleLogin
+            onSuccess={(credentialResponse) => console.log("🎉 성공:", credentialResponse)}
+            onError={() => console.log("😭 실패")}
+          />
+        </GoogleOAuthProvider>
+      </div>
           </div>
           <div className="flex items-center gap-3">
             <Button

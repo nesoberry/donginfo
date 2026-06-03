@@ -1,0 +1,31 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 코드를 가져옵니다 (Checkout)
+      uses: actions/checkout@v4
+
+    - name: Node.js 20 버전을 세팅합니다
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: pnpm을 설치합니다
+      uses: pnpm/action-setup@v3
+      with:
+        version: 9
+
+    - name: 패키지들을 설치합니다 (Install dependencies)
+      run: pnpm install
+
+    - name: 프로젝트 빌드 테스트를 진행합니다
+      run: pnpm run build

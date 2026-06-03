@@ -25,6 +25,7 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Page 1", path: "/" },
@@ -46,7 +47,6 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   
-
   return (
     <SidebarProvider
       style={
@@ -55,12 +55,22 @@ export default function DashboardLayout({
         } as CSSProperties
       }
     >
+      {/* 👇 구글 로그인 버튼을 태그가 제대로 닫힌 '안쪽'에 배치! 👇 */}
+      <div className="w-full flex justify-center p-4 bg-yellow-100 border-b-4 border-yellow-400">
+        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <GoogleLogin
+            onSuccess={(credentialResponse) => console.log("🎉 성공:", credentialResponse)}
+            onError={() => console.log("😭 실패")}
+          />
+        </GoogleOAuthProvider>
+      </div>
+      {/* 👆 여기까지 👆 */}
+
       <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
   );
-}
 
 type DashboardLayoutContentProps = {
   children: React.ReactNode;
