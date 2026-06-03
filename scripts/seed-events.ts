@@ -194,38 +194,13 @@ async function main() {
   console.log("행사 데이터 입력 시작...");
   
   for (const event of events) {
-    await client`
-      INSERT INTO events (id, name, description, "eventDate", "eventEndDate", location, region, "ticketOpenDate", "ticketLink", "mapLink", "allowsCosplay")
-      VALUES (
-        ${event.id},
-        ${event.name},
-        ${event.description},
-        ${event.eventDate},
-        ${event.eventEndDate},
-        ${event.location},
-        ${event.region},
-        ${event.ticketOpenDate},
-        ${event.ticketLink},
-        ${event.mapLink},
-        ${event.allowsCosplay}
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        name = EXCLUDED.name,
-        description = EXCLUDED.description,
-        "eventDate" = EXCLUDED."eventDate",
-        "eventEndDate" = EXCLUDED."eventEndDate",
-        location = EXCLUDED.location,
-        region = EXCLUDED.region,
-        "ticketOpenDate" = EXCLUDED."ticketOpenDate",
-        "ticketLink" = EXCLUDED."ticketLink",
-        "mapLink" = EXCLUDED."mapLink",
-        "allowsCosplay" = EXCLUDED."allowsCosplay"
-    `;
+    await db.insert(events).values(event);
+  }
+;
     console.log(`✅ ${event.name}`);
   }
   
-  console.log("완료! 총 " + events.length + "개 행사 입력됨");
-  await client.end();
-}
+  console.log("완료! 총 " + events.length + "개 행사 입력됨")
+;
 
 main().catch(console.error);
