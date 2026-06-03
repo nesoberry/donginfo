@@ -1,11 +1,14 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { getDb } from "../server/db";
+import { events } from "../drizzle/schema";
+
+console.log("시드가 연결하는 DB:", process.env.DATABASE_URL);
 
 const db = await getDb();
 
 
-const events = [
+const eventsData = [
   {
     id: 30008,
     name: "2026 메이커앤하비 페스티벌",
@@ -191,16 +194,36 @@ const events = [
 ];
 
 async function main() {
+  await db.delete(events);
   console.log("행사 데이터 입력 시작...");
   
-  for (const event of events) {
-    await db.insert(events).values(event);
+  for (const event of eventsData) {
+    // DB 스키마(schema.ts)에 존재하는 컬럼만 골라서 안전하게 매핑합니다.
+    // 스키마에 없는 eventEndDate는 DB에 전달되지 않도록 아예 제외했습니다.
+    const formattedEvent = {
+      id: event.id,
+      name: event.name,
+      description: event.description,
+      eventDate: new Date(event.eventDate),
+      location: event.location,
+      region: event.region,
+      
+      // ticketOpenDate가 비어있을 경우 임시로 2026년 1월 1일을 넣습니다.
+      ticketOpenDate: event.ticketOpenDate ? new Date(event.ticketOpenDate) : new Date("2026-01-01T00:00:00.000Z"),
+      
+      ticketLink: event.ticketLink,
+      mapLink: event.mapLink,
+      allowsCosplay: event.allowsCosplay as "yes" | "no" | "limited",
+      
+      // 스키마에서 필수(notNull)로 요구하는 생성자 ID를 임의로 추가합니다.
+      createdBy: 1, 
+    };
+
+    // 예쁘게 포장된 데이터를 DB에 삽입합니다.
+    await db.insert(events).values(formattedEvent);
   }
-;
-    console.log(`✅ ${event.name}`);
-  }
-  
-  console.log("완료! 총 " + events.length + "개 행사 입력됨")
-;
+
+  console.log("완료! 총 " + eventsData.length + "개 행사 입력됨");
+}
 
 main().catch(console.error);
