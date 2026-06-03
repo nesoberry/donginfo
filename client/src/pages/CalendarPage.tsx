@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 export default function CalendarPage() {
@@ -14,25 +14,19 @@ export default function CalendarPage() {
     const month = currentDate.getMonth();
 
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
 
-    // 월요일 시작 (0=일, 1=월 ... 6=토)
-    let startOffset = firstDay.getDay() - 1;
-    if (startOffset < 0) startOffset = 6;
+    // 일요일 시작 (0=일, 1=월 ... 6=토)
+    const startOffset = firstDay.getDay();
 
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - startOffset);
 
-    let endOffset = 6 - lastDay.getDay();
-    if (lastDay.getDay() === 0) endOffset = 6;
-    const endDate = new Date(lastDay);
-    endDate.setDate(endDate.getDate() + endOffset);
-
+    // 항상 6주 (42일) 표시
     const days: Date[] = [];
-    const cur = new Date(startDate);
-    while (cur <= endDate) {
-      days.push(new Date(cur));
-      cur.setDate(cur.getDate() + 1);
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      days.push(d);
     }
     return days;
   }, [currentDate]);
@@ -58,149 +52,148 @@ export default function CalendarPage() {
     month: 'long',
   });
 
-  const weekDays = ['월', '화', '수', '목', '금', '토', '일'];
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
   const today = new Date();
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#666' }}>행사 데이터를 불러오는 중...</p>
+      <div className="flex h-screen items-center justify-center bg-[#f7f8fb]">
+        <p className="text-muted-foreground">행사 데이터를 불러오는 중...</p>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#ffffff', padding: '32px 40px', fontFamily: 'sans-serif' }}>
+    <main className="flex h-screen flex-col overflow-hidden bg-[#f7f8fb] text-[#172033]">
       {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 600, color: '#1a1a1a', margin: 0 }}>행사 캘린더</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={prevMonth}
-            style={{
-              width: '32px', height: '32px', border: '1px solid #e0e0e0',
-              borderRadius: '50%', background: '#fff', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#444',
-            }}
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span style={{ fontSize: '16px', fontWeight: 500, color: '#1a1a1a', minWidth: '120px', textAlign: 'center' }}>
-            {monthYear}
-          </span>
-          <button
-            onClick={nextMonth}
-            style={{
-              width: '32px', height: '32px', border: '1px solid #e0e0e0',
-              borderRadius: '50%', background: '#fff', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#444',
-            }}
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* 캘린더 테이블 */}
-      <div style={{ border: '1px solid #e0e0e0', borderRadius: '4px', overflow: 'hidden' }}>
-        {/* 요일 헤더 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #e0e0e0' }}>
-          {weekDays.map((day) => (
-            <div
-              key={day}
-              style={{
-                padding: '10px 0',
-                textAlign: 'center',
-                fontSize: '12px',
-                fontWeight: 500,
-                color: '#70757a',
-                borderRight: '1px solid #e0e0e0',
-              }}
+      <header className="shrink-0 border-b border-[#dde5ef] bg-white/95 px-6 py-4 shadow-[0_1px_0_rgba(15,23,42,0.03)] sm:px-8">
+        <div className="relative flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            {/* 홈 버튼 */}
+            <button
+              onClick={() => setLocation('/')}
+              className="mt-1 grid size-10 place-items-center rounded-full border border-violet-100 bg-violet-50/80 text-violet-700 transition hover:bg-violet-100 hover:shadow-sm active:scale-95"
+              aria-label="홈으로 이동"
             >
-              {day}
+              <Home className="size-5" />
+            </button>
+
+            <div>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-600/80">
+                Dongin Schedule
+              </p>
+              <h1 className="text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
+                동인 행사 캘린더
+              </h1>
+              <p className="mt-1 text-sm text-[#697386]">
+                다가오는 동인 행사와 이벤트를 확인하세요
+              </p>
             </div>
-          ))}
+          </div>
+
+          {/* 월 이동 네비게이션 */}
+          <nav
+            className="flex w-fit items-center gap-1 rounded-full border border-violet-100 bg-violet-50/80 p-1 shadow-[0_10px_30px_rgba(124,58,237,0.12)] sm:absolute sm:left-1/2 sm:-translate-x-1/2"
+            aria-label="월 이동"
+          >
+            <button
+              onClick={prevMonth}
+              className="grid size-9 place-items-center rounded-full text-violet-700 transition hover:bg-white hover:shadow-sm active:scale-95"
+              aria-label="이전 달"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <div className="min-w-36 rounded-full bg-white px-5 py-2 text-center text-sm font-bold text-violet-900 shadow-sm ring-1 ring-violet-100">
+              {monthYear}
+            </div>
+            <button
+              onClick={nextMonth}
+              className="grid size-9 place-items-center rounded-full text-violet-700 transition hover:bg-white hover:shadow-sm active:scale-95"
+              aria-label="다음 달"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </nav>
         </div>
+      </header>
 
-        {/* 날짜 그리드 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-          {calendarDays.map((date, idx) => {
-            const dayEvents = getEventsForDate(date);
-            const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-            const isToday =
-              date.getFullYear() === today.getFullYear() &&
-              date.getMonth() === today.getMonth() &&
-              date.getDate() === today.getDate();
-
-            return (
+      {/* 캘린더 */}
+      <section className="min-h-0 flex-1 p-3 sm:p-4">
+        <div className="grid h-full grid-rows-[30px_1fr] overflow-hidden rounded-[1.35rem] border border-[#dde5ef] bg-white shadow-[0_18px_60px_rgba(19,24,38,0.08)]">
+          {/* 요일 헤더 */}
+          <div className="grid grid-cols-7 border-b border-[#dde5ef] bg-[#eef3f8]/60">
+            {weekDays.map((day, index) => (
               <div
-                key={idx}
-                style={{
-                  minHeight: '120px',
-                  borderRight: '1px solid #e0e0e0',
-                  borderBottom: '1px solid #e0e0e0',
-                  background: '#ffffff',
-                  padding: '6px 8px',
-                  boxSizing: 'border-box',
-                  verticalAlign: 'top',
-                }}
+                key={day}
+                className={`flex items-center justify-center text-[11px] font-bold ${
+                  index === 0
+                    ? 'text-rose-500'
+                    : index === 6
+                    ? 'text-blue-500'
+                    : 'text-[#697386]'
+                }`}
               >
-                {/* 날짜 숫자 */}
-                <div
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: isToday ? 700 : 400,
-                    color: isToday ? '#1a73e8' : isCurrentMonth ? '#1a1a1a' : '#b0b0b0',
-                    marginBottom: '4px',
-                    width: '24px',
-                    height: '24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '50%',
-                    background: isToday ? '#e8f0fe' : 'transparent',
-                  }}
-                >
-                  {date.getDate()}
-                </div>
-
-                {/* 행사 목록 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {dayEvents.slice(0, 3).map(event => (
-                    <div
-                      key={event.id}
-                      onClick={() => setLocation(`/event/${event.id}`)}
-                      style={{
-                        fontSize: '11px',
-                        color: '#000000',
-                        background: 'transparent',
-                        padding: '2px 4px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        lineHeight: '1.4',
-                        borderLeft: '3px solid #4285f4',
-                        paddingLeft: '6px',
-                      }}
-                      title={event.name}
-                    >
-                      {event.name}
-                    </div>
-                  ))}
-                  {dayEvents.length > 3 && (
-                    <div style={{ fontSize: '11px', color: '#70757a', paddingLeft: '4px' }}>
-                      +{dayEvents.length - 3}개
-                    </div>
-                  )}
-                </div>
+                {day}
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* 날짜 그리드 */}
+          <div className="grid min-h-0 grid-cols-7 grid-rows-6">
+            {calendarDays.map((day) => {
+              const inMonth = day.getMonth() === currentDate.getMonth();
+              const dayEvents = getEventsForDate(day);
+              const isToday = isSameDay(day, today);
+
+              return (
+                <article
+                  key={day.toISOString()}
+                  className="min-h-0 border-r border-b border-[#dde5ef]/90 p-1.5 last:border-r-0 sm:p-2"
+                >
+            {/* 날짜 숫자 */}
+            <div className="mb-1 flex h-8 shrink-0 items-center justify-center">
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-[15px] font-bold leading-none ${
+                  isToday
+                    ? 'bg-violet-600 text-white'
+                    : inMonth
+                    ? 'text-[#172033]/75'
+                    : 'text-[#697386]/45'
+                }`}
+              >
+                {day.getDate()}
+              </span>
+            </div>
+
+                  {/* 행사 목록 */}
+                  <div className="space-y-1 overflow-hidden leading-tight">
+                    {dayEvents.slice(0, 3).map((event) => (
+                      <div
+                        key={event.id}
+                        onClick={() => setLocation(`/event/${event.id}`)}
+                        className="flex min-h-[29px] cursor-pointer items-center truncate rounded-md bg-violet-600 px-2 py-1.5 text-[15px] font-bold text-white shadow-[0_8px_18px_rgba(124,58,237,0.24)] transition hover:bg-violet-700 sm:min-h-[36px] lg:min-h-[43px] xl:min-h-[48px]"
+                        title={event.name}
+                      >
+                        {event.name}
+                      </div>
+                    ))}
+                    {dayEvents.length > 3 && (
+                      <div className="px-2 text-[11px] font-semibold text-[#697386]">
+                        +{dayEvents.length - 3}개
+                      </div>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

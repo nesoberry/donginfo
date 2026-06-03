@@ -48,18 +48,16 @@ export default function Home() {
       {/* 헤더 */}
       <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
         <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <LayoutGrid className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">동인 행사 일정</h1>
-            <div className="w-full flex justify-center p-4 bg-yellow-100 border-b-4 border-yellow-400 mb-4">
-        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-          <GoogleLogin
-            onSuccess={(credentialResponse) => console.log("🎉 성공:", credentialResponse)}
-            onError={() => console.log("😭 실패")}
-          />
-        </GoogleOAuthProvider>
-      </div>
-          </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <LayoutGrid className="w-8 h-8 text-primary" />
+          <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">동인 행사 일정</h1>
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+            <GoogleLogin
+              onSuccess={(credentialResponse) => console.log("🎉 성공:", credentialResponse)}
+              onError={() => console.log("😭 실패")}
+            />
+          </GoogleOAuthProvider>
+        </div>
           <div className="flex items-center gap-3">
             <Button
               onClick={() => setLocation("/calendar" as string)}
@@ -131,7 +129,7 @@ export default function Home() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 max-w-6xl mx-auto">
               {filteredEvents.map(event => (
                 <Card
                   key={event.id}
@@ -203,6 +201,7 @@ export default function Home() {
                       {event.mapLink && (
                         <Button
                           size="sm"
+                          className="flex-1"
                           variant="outline"
                           onClick={(e) => {
                             e.stopPropagation();
