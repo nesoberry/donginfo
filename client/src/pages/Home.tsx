@@ -64,6 +64,7 @@ export default function Home() {
                 const res = await fetch(`${apiUrl}/api/auth/google`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
+                  credentials: "include",
                   body: JSON.stringify({ credential: credentialResponse.credential }),
                 });
 
