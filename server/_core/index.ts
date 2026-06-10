@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { sendTicketOpenNotificationHandler, processNotificationsHandler } from "../scheduled";
+import { authRouter } from './authRouter';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -52,7 +53,7 @@ app.use((req, res, next) => {
   // Scheduled tasks
   app.post("/api/scheduled/ticket-open-notification", sendTicketOpenNotificationHandler);
   app.post("/api/scheduled/process-notifications", processNotificationsHandler);
-
+  app.use('/api/auth', authRouter);
   // tRPC API
   app.use(
     "/api/trpc",

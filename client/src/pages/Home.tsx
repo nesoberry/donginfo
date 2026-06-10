@@ -52,11 +52,39 @@ export default function Home() {
           <LayoutGrid className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">동인 행사 일정</h1>
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={(credentialResponse) => console.log("🎉 성공:", credentialResponse)}
-              onError={() => console.log("😭 실패")}
-            />
-          </GoogleOAuthProvider>
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              console.log("1. 구글에서 토큰 받음!", credentialResponse);
+              
+              try {
+                // 2. 우리가 만든 백엔드 도로(/api/auth/google)로 토큰 배달!
+                const apiUrl = import.meta.env.VITE_API_URL || "";
+                const res = await fetch(`${apiUrl}/api/auth/google`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ credential: credentialResponse.credential }),
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                  console.log("🎉 3. 백엔드 로그인 최종 성공!", data);
+                  alert("로그인에 성공했습니다!");
+                  // 로그인 성공 후 페이지를 새로고침해서 유저 정보를 반영
+                  window.location.reload(); 
+                } else {
+                  console.error("🚨 백엔드 거절:", data.error);
+                  alert("로그인 처리 중 문제가 발생했습니다.");
+                }
+              } catch (err) {
+                console.error("🚨 네트워크 통신 에러:", err);
+              }
+            }}
+            onError={() => {
+              console.log("😭 구글 창에서 로그인 실패");
+            }}
+          />
+        </GoogleOAuthProvider>
         </div>
           <div className="flex items-center gap-3">
             <Button
