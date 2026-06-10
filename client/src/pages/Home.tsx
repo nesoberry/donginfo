@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles } from "lucide-react";
+import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
@@ -26,14 +26,11 @@ export default function Home() {
 
 
 
-  // 필터링된 행사 목록
+  // 필터링된 행사 목록 (검색은 서버에서 처리, 코스프레 필터만 클라이언트에서 처리)
   const filteredEvents = useMemo(() => {
-    return events.filter(event => {
-      if (searchTerm && !event.name.toLowerCase().includes(searchTerm.toLowerCase()) && !event.location.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-      if (showCosplayOnly && event.allowsCosplay === 'no') return false;
-      return true;
-    });
-  }, [events, searchTerm, showCosplayOnly]);
+    if (!showCosplayOnly) return events;
+    return events.filter(event => event.allowsCosplay !== 'no');
+  }, [events, showCosplayOnly]);
 
   const handleEventClick = (eventId: number) => {
     setLocation(`/event/${eventId}` as string);
@@ -95,6 +92,16 @@ export default function Home() {
               <Calendar className="w-4 h-4" />
               캘린더
             </Button>
+            {isAuthenticated && (
+              <Button
+                onClick={() => setLocation("/notifications" as string)}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Bell className="w-4 h-4" />
+                알림
+              </Button>
+            )}
             {isAuthenticated && user?.role === "admin" && (
               <Button
                 onClick={handleAdminClick}

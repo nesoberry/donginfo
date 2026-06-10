@@ -53,6 +53,7 @@ export const appRouter = router({
           ticketLink: z.string().url().optional(),
           mapLink: z.string().url().optional(),
           region: z.string().optional(),
+          allowsCosplay: z.enum(["yes", "no", "limited"]).default("no").optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -78,6 +79,7 @@ export const appRouter = router({
           ticketLink: z.string().url().optional(),
           mapLink: z.string().url().optional(),
           region: z.string().optional(),
+          allowsCosplay: z.enum(["yes", "no", "limited"]).optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -139,12 +141,35 @@ export const appRouter = router({
         return subscription;
       }),
 
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          notifyOneDayBefore: z.enum(["email", "inapp", "both", "none"]).optional(),
+          notifyOneHourBefore: z.enum(["email", "inapp", "both", "none"]).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userSubs = await db.getUserSubscriptions(ctx.user.id);
+        const isOwner = userSubs.some(sub => sub.id === input.id);
+        if (!isOwner) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        const { id, ...data } = input;
+        const subscription = await db.updateSubscription(id, data);
+        if (!subscription) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Subscription not found" });
+        }
+        return subscription;
+      }),
+
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
         // Verify ownership by checking if subscription belongs to user
-        const subscriptions = await db.getUserSubscriptions(ctx.user.id);
-        const isOwner = subscriptions.some(sub => sub.id === input.id);
+        const userSubs = await db.getUserSubscriptions(ctx.user.id);
+        const isOwner = userSubs.some(sub => sub.id === input.id);
         if (!isOwner) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
         }

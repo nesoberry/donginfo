@@ -3,7 +3,6 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -31,7 +30,8 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 async function startServer() {
   const app = express();
-  const allowedOrigins = ["https://www.donginfo.com", "https://donginfo.com"];
+  const rawOrigins = process.env.ALLOWED_ORIGINS || "https://www.donginfo.com,https://donginfo.com";
+  const allowedOrigins = rawOrigins.split(",").map(o => o.trim()).filter(Boolean);
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
@@ -49,7 +49,6 @@ app.use((req, res, next) => {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  registerStorageProxy(app);
   // Scheduled tasks
   app.post("/api/scheduled/ticket-open-notification", sendTicketOpenNotificationHandler);
   app.post("/api/scheduled/process-notifications", processNotificationsHandler);

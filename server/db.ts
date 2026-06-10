@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, like, desc, asc } from "drizzle-orm";
+import { eq, and, gte, lte, like, desc, asc, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, events, subscriptions, notifications, Event, InsertEvent, Subscription, InsertSubscription, Notification, InsertNotification } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -152,7 +152,12 @@ export async function listEvents(filters?: {
       conditions.push(eq(events.region, filters.region));
     }
     if (filters?.search) {
-      conditions.push(like(events.name, `%${filters.search}%`));
+      conditions.push(
+        or(
+          like(events.name, `%${filters.search}%`),
+          like(events.location, `%${filters.search}%`)
+        )
+      );
     }
     
     // 날짜 범위 필터 적용
@@ -258,6 +263,26 @@ export async function getUserSubscriptions(userId: number): Promise<Subscription
     return result;
   } catch (error) {
     console.error("[Database] Failed to get user subscriptions:", error);
+    throw error;
+  }
+}
+
+export async function updateSubscription(
+  id: number,
+  data: Partial<Pick<InsertSubscription, "notifyOneDayBefore" | "notifyOneHourBefore">>
+): Promise<Subscription | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update subscription: database not available");
+    return null;
+  }
+
+  try {
+    await db.update(subscriptions).set(data).where(eq(subscriptions.id, id));
+    const result = await db.select().from(subscriptions).where(eq(subscriptions.id, id)).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to update subscription:", error);
     throw error;
   }
 }

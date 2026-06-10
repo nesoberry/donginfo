@@ -8,14 +8,14 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useState } from "react";
+
 import { toast } from "sonner";
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const utils = trpc.useUtils();
 
   const eventId = parseInt(id || "0", 10);
 
@@ -34,7 +34,7 @@ export default function EventDetail() {
   // 구독 생성
   const createSubscription = trpc.subscriptions.create.useMutation({
     onSuccess: () => {
-      setIsSubscribed(true);
+      utils.subscriptions.getByEventId.invalidate({ eventId });
       toast.success("알림 구독이 완료되었습니다");
     },
     onError: (error) => {
@@ -45,7 +45,7 @@ export default function EventDetail() {
   // 구독 삭제
   const deleteSubscription = trpc.subscriptions.delete.useMutation({
     onSuccess: () => {
-      setIsSubscribed(false);
+      utils.subscriptions.getByEventId.invalidate({ eventId });
       toast.success("알림 구독이 취소되었습니다");
     },
     onError: (error) => {
@@ -59,7 +59,7 @@ export default function EventDetail() {
       return;
     }
 
-    if (isSubscribed && subscription) {
+    if (subscription) {
       deleteSubscription.mutate({ id: subscription.id });
     } else {
       createSubscription.mutate({
