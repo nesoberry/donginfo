@@ -4,20 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell } from "lucide-react";
+import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { usePushNotification } from "@/hooks/usePushNotification";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCosplayOnly, setShowCosplayOnly] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
+  const { isSupported, isSubscribed, isLoading: pushLoading, subscribe } = usePushNotification();
 
   // 행사 목록 조회
   const { data: events = [], isLoading } = trpc.events.list.useQuery({
@@ -39,6 +42,8 @@ export default function Home() {
   const handleAdminClick = () => {
     setLocation("/admin" as string);
   };
+
+  const showBanner = isAuthenticated && isSupported && !isSubscribed && !bannerDismissed;
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,6 +126,38 @@ export default function Home() {
 
       {/* 메인 콘텐츠 */}
       <main className="container py-12">
+        {/* 푸시 알림 배너 */}
+        {showBanner && (
+          <div className="mb-8 flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-5 py-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-foreground">행사 알림을 받아보세요</p>
+                <p className="text-xs text-muted-foreground">예매 오픈일, 행사 전날 알림을 브라우저로 받을 수 있어요</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                size="sm"
+                onClick={async () => {
+                  await subscribe();
+                }}
+                disabled={pushLoading}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                알림 켜기
+              </Button>
+              <button
+                onClick={() => setBannerDismissed(true)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="닫기"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 검색 및 필터 섹션 */}
         <div className="mb-12">
           <div className="mb-6">
