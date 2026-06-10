@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { getDb } from "./db";
 import { eq, and, gte, lte, ne } from "drizzle-orm";
-import { events, subscriptions, notifications, users } from "../drizzle/schema";
+import { events, subscriptions, notifications, users, pushSubscriptions } from "../drizzle/schema";
 import nodemailer from "nodemailer";
+import webpush from "web-push";
 
 // 📧 메일 발송기 세팅
 const transporter = nodemailer.createTransport({
@@ -13,11 +14,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * 크론 요청 인증 헬퍼.
- * 환경변수 CRON_SECRET을 설정하고, 크론 서비스에서
- * Authorization: Bearer <CRON_SECRET> 헤더를 보내도록 설정하세요.
- */
+// 🔔 Web Push VAPID 세팅
+if (process.env.VAPID_EMAIL && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_EMAIL}`,
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
+
 function verifyCronAuth(req: Request, res: Response): boolean {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
@@ -52,6 +57,7 @@ export async function processNotificationsHandler(req: Request, res: Response) {
     for (const notification of pendingNotifications) {
       try {
         if (notification.notificationType === "email") {
+          // ✉️ 이메일 발송
           const targetUser = await db.select().from(users).where(eq(users.id, notification.userId)).limit(1);
           const emailAddress = targetUser[0]?.email;
 
@@ -69,8 +75,40 @@ export async function processNotificationsHandler(req: Request, res: Response) {
             });
             console.log(`[Email] ${emailAddress}로 메일 발송 성공!`);
           }
+        } else if (notification.notificationType === "push") {
+          // 🔔 브라우저 푸시 발송
+          const event = await db.select().from(events).where(eq(events.id, notification.eventId)).limit(1);
+          const eventName = event[0]?.name ?? "동인행사";
+          const triggerLabel = notification.triggerType === "one_day_before" ? "내일" : "1시간 후";
+
+          const userPushSubs = await db
+            .select()
+            .from(pushSubscriptions)
+            .where(eq(pushSubscriptions.userId, notification.userId));
+
+          for (const sub of userPushSubs) {
+            try {
+              await webpush.sendNotification(
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                JSON.stringify({
+                  title: `${eventName} 예매 ${triggerLabel} 오픈!`,
+                  body: `${eventName} 예매 오픈이 ${triggerLabel}입니다. 놓치지 마세요!`,
+                  url: "/",
+                })
+              );
+              console.log(`[Push] userId ${notification.userId}에게 푸시 발송 성공!`);
+            } catch (pushError: any) {
+              // 410/404 = 구독 만료 → DB에서 삭제
+              if (pushError?.statusCode === 410 || pushError?.statusCode === 404) {
+                await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, sub.endpoint));
+                console.log(`[Push] 만료된 구독 삭제: ${sub.endpoint}`);
+              } else {
+                throw pushError;
+              }
+            }
+          }
         }
-        // 인앱 알림은 status만 sent로 변경 (클라이언트가 polling으로 확인)
+        // inapp 타입은 더 이상 생성하지 않으므로 별도 처리 없음
 
         await db
           .update(notifications)
@@ -113,23 +151,13 @@ export async function sendTicketOpenNotificationHandler(req: Request, res: Respo
     const eventsOneHourBefore = await db
       .select()
       .from(events)
-      .where(
-        and(
-          gte(events.ticketOpenDate, oneHourBeforeStart),
-          lte(events.ticketOpenDate, oneHourBeforeEnd)
-        )
-      );
+      .where(and(gte(events.ticketOpenDate, oneHourBeforeStart), lte(events.ticketOpenDate, oneHourBeforeEnd)));
 
     for (const event of eventsOneHourBefore) {
       const eventSubscriptions = await db
         .select()
         .from(subscriptions)
-        .where(
-          and(
-            eq(subscriptions.eventId, event.id),
-            ne(subscriptions.notifyOneHourBefore, "none")
-          )
-        );
+        .where(and(eq(subscriptions.eventId, event.id), ne(subscriptions.notifyOneHourBefore, "none")));
 
       for (const subscription of eventSubscriptions) {
         // 이메일 알림 생성
@@ -143,13 +171,20 @@ export async function sendTicketOpenNotificationHandler(req: Request, res: Respo
             status: "pending",
           });
         }
-        // 인앱 알림 생성
-        if (subscription.notifyOneHourBefore === "inapp" || subscription.notifyOneHourBefore === "both") {
+
+        // 브라우저 푸시 알림 생성 (push_subscriptions에 등록된 사용자에게만)
+        const hasPushSub = await db
+          .select({ id: pushSubscriptions.id })
+          .from(pushSubscriptions)
+          .where(eq(pushSubscriptions.userId, subscription.userId))
+          .limit(1);
+
+        if (hasPushSub.length > 0) {
           await db.insert(notifications).values({
             subscriptionId: subscription.id,
             eventId: event.id,
             userId: subscription.userId,
-            notificationType: "inapp",
+            notificationType: "push",
             triggerType: "one_hour_before",
             status: "pending",
           });
@@ -166,23 +201,13 @@ export async function sendTicketOpenNotificationHandler(req: Request, res: Respo
       const eventsTomorrow = await db
         .select()
         .from(events)
-        .where(
-          and(
-            gte(events.eventDate, tomorrowStart),
-            lte(events.eventDate, tomorrowEnd)
-          )
-        );
+        .where(and(gte(events.eventDate, tomorrowStart), lte(events.eventDate, tomorrowEnd)));
 
       for (const event of eventsTomorrow) {
         const eventSubscriptions = await db
           .select()
           .from(subscriptions)
-          .where(
-            and(
-              eq(subscriptions.eventId, event.id),
-              ne(subscriptions.notifyOneDayBefore, "none")
-            )
-          );
+          .where(and(eq(subscriptions.eventId, event.id), ne(subscriptions.notifyOneDayBefore, "none")));
 
         for (const subscription of eventSubscriptions) {
           if (subscription.notifyOneDayBefore === "email" || subscription.notifyOneDayBefore === "both") {
@@ -195,12 +220,20 @@ export async function sendTicketOpenNotificationHandler(req: Request, res: Respo
               status: "pending",
             });
           }
-          if (subscription.notifyOneDayBefore === "inapp" || subscription.notifyOneDayBefore === "both") {
+
+          // 브라우저 푸시 알림 생성
+          const hasPushSub = await db
+            .select({ id: pushSubscriptions.id })
+            .from(pushSubscriptions)
+            .where(eq(pushSubscriptions.userId, subscription.userId))
+            .limit(1);
+
+          if (hasPushSub.length > 0) {
             await db.insert(notifications).values({
               subscriptionId: subscription.id,
               eventId: event.id,
               userId: subscription.userId,
-              notificationType: "inapp",
+              notificationType: "push",
               triggerType: "one_day_before",
               status: "pending",
             });
@@ -210,7 +243,6 @@ export async function sendTicketOpenNotificationHandler(req: Request, res: Respo
     }
 
     return res.status(200).json({ success: true, message: "알림 타겟팅 완료!" });
-
   } catch (err) {
     console.error("알림 생성 중 에러:", err);
     return res.status(500).json({ error: "Internal server error" });
