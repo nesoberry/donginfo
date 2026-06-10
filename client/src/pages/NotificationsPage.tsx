@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Bell, AlertCircle } from "lucide-react";
+import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
 export default function NotificationsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const { data: notifications, isLoading, error } = trpc.notifications.list.useQuery(
     { limit: 50 },
     { enabled: isAuthenticated && !authLoading }
@@ -78,7 +80,7 @@ export default function NotificationsPage() {
             <p className="text-gray-600 mb-6">
               행사를 구독하면 예매 오픈 알림을 받을 수 있습니다.
             </p>
-            <Button variant="default" onClick={() => window.location.href = "/"}>
+            <Button variant="default" onClick={() => setLocation("/")}>
               행사 보기
             </Button>
           </Card>

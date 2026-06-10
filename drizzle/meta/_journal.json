@@ -22,6 +22,13 @@
       "when": 1780037329733,
       "tag": "0002_wild_onslaught",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1781105809321,
+      "tag": "0003_easy_mad_thinker",
+      "breakpoints": true
     }
   ]
 }

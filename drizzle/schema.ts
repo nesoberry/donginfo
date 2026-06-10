@@ -2,16 +2,10 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-or
 
 /**
  * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
+  /** Google OAuth sub (openId) */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -30,16 +24,16 @@ export type InsertUser = typeof users.$inferInsert;
  */
 export const events = mysqlTable("events", {
   id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(), // 행사명
-  description: text("description"), // 행사 설명
-  eventDate: timestamp("eventDate").notNull(), // 행사 날짜 (ISO 8601)
-  location: varchar("location", { length: 255 }).notNull(), // 장소
-  ticketOpenDate: timestamp("ticketOpenDate").notNull(), // 예매 오픈 일시
-  ticketLink: varchar("ticketLink", { length: 512 }), // 예매처 링크
-  mapLink: varchar("mapLink", { length: 512 }), // 배치도 링크
-  region: varchar("region", { length: 100 }), // 지역 (서울, 부산 등)
-  allowsCosplay: mysqlEnum("allowsCosplay", ["yes", "no", "limited"]).default("no").notNull(), // 코스프레 가능 여부 (yes: 가능, no: 불가, limited: 제한)
-  createdBy: int("createdBy").notNull(), // 생성자 (admin user id)
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  eventDate: timestamp("eventDate").notNull(),
+  location: varchar("location", { length: 255 }).notNull(),
+  ticketOpenDate: timestamp("ticketOpenDate").notNull(),
+  ticketLink: varchar("ticketLink", { length: 512 }),
+  mapLink: varchar("mapLink", { length: 512 }),
+  region: varchar("region", { length: 100 }),
+  allowsCosplay: mysqlEnum("allowsCosplay", ["yes", "no", "limited"]).default("no").notNull(),
+  createdBy: int("createdBy").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -52,10 +46,10 @@ export type InsertEvent = typeof events.$inferInsert;
  */
 export const subscriptions = mysqlTable("subscriptions", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(), // 구독 사용자
-  eventId: int("eventId").notNull(), // 구독 행사
-  notifyOneDayBefore: mysqlEnum("notifyOneDayBefore", ["email", "inapp", "both", "none"]).default("both").notNull(), // D-1 알림 방식
-  notifyOneHourBefore: mysqlEnum("notifyOneHourBefore", ["email", "inapp", "both", "none"]).default("both").notNull(), // 1시간 전 알림 방식
+  userId: int("userId").notNull(),
+  eventId: int("eventId").notNull(),
+  notifyOneDayBefore: mysqlEnum("notifyOneDayBefore", ["email", "inapp", "both", "none"]).default("both").notNull(),
+  notifyOneHourBefore: mysqlEnum("notifyOneHourBefore", ["email", "inapp", "both", "none"]).default("both").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -68,16 +62,31 @@ export type InsertSubscription = typeof subscriptions.$inferInsert;
  */
 export const notifications = mysqlTable("notifications", {
   id: int("id").autoincrement().primaryKey(),
-  subscriptionId: int("subscriptionId").notNull(), // 구독 ID
-  eventId: int("eventId").notNull(), // 행사 ID
-  userId: int("userId").notNull(), // 수신자
-  notificationType: mysqlEnum("notificationType", ["email", "inapp"]).notNull(), // 알림 타입
-  triggerType: mysqlEnum("triggerType", ["one_day_before", "one_hour_before"]).notNull(), // 트리거 타입
-  status: mysqlEnum("status", ["pending", "sent", "failed"]).default("pending").notNull(), // 발송 상태
-  sentAt: timestamp("sentAt"), // 실제 발송 시간
-  failureReason: text("failureReason"), // 실패 사유
+  subscriptionId: int("subscriptionId").notNull(),
+  eventId: int("eventId").notNull(),
+  userId: int("userId").notNull(),
+  notificationType: mysqlEnum("notificationType", ["email", "inapp", "push"]).notNull(),
+  triggerType: mysqlEnum("triggerType", ["one_day_before", "one_hour_before"]).notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "failed"]).default("pending").notNull(),
+  sentAt: timestamp("sentAt"),
+  failureReason: text("failureReason"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Push subscriptions - stores Web Push subscription info per browser/user
+ */
+export const pushSubscriptions = mysqlTable("push_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  endpoint: varchar("endpoint", { length: 512 }).notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: varchar("auth", { length: 128 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;

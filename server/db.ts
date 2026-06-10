@@ -1,11 +1,14 @@
-import { eq, and, gte, lte, like, desc, asc } from "drizzle-orm";
+import { eq, and, gte, lte, like, desc, asc, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, events, subscriptions, notifications, Event, InsertEvent, Subscription, InsertSubscription, Notification, InsertNotification } from "../drizzle/schema";
+import {
+  InsertUser, users, events, subscriptions, notifications, pushSubscriptions,
+  Event, InsertEvent, Subscription, InsertSubscription, Notification, InsertNotification,
+  PushSubscription, InsertPushSubscription,
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -19,9 +22,7 @@ export async function getDb() {
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
+  if (!user.openId) throw new Error("User openId is required for upsert");
 
   const db = await getDb();
   if (!db) {
@@ -30,9 +31,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
+    const values: InsertUser = { openId: user.openId };
     const updateSet: Record<string, unknown> = {};
 
     const textFields = ["name", "email", "loginMethod"] as const;
@@ -47,30 +46,23 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     };
 
     textFields.forEach(assignNullable);
-
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
     }
+
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
+    } else if (user.openId === process.env.OWNER_OPEN_ID) {
       values.role = 'admin';
       updateSet.role = 'admin';
     }
 
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
+    if (!values.lastSignedIn) values.lastSignedIn = new Date();
+    if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
 
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -83,9 +75,7 @@ export async function getUserByOpenId(openId: string) {
     console.warn("[Database] Cannot get user: database not available");
     return undefined;
   }
-
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -93,16 +83,11 @@ export async function getUserByOpenId(openId: string) {
 
 export async function createEvent(data: InsertEvent): Promise<Event | null> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot create event: database not available");
-    return null;
-  }
-
+  if (!db) return null;
   try {
     const result = await db.insert(events).values(data);
     const eventId = result[0]?.insertId;
     if (!eventId) return null;
-
     const created = await db.select().from(events).where(eq(events.id, eventId as number)).limit(1);
     return created[0] || null;
   } catch (error) {
@@ -113,11 +98,7 @@ export async function createEvent(data: InsertEvent): Promise<Event | null> {
 
 export async function getEventById(id: number): Promise<Event | null> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get event: database not available");
-    return null;
-  }
-
+  if (!db) return null;
   try {
     const result = await db.select().from(events).where(eq(events.id, id)).limit(1);
     return result[0] || null;
@@ -134,38 +115,24 @@ export async function listEvents(filters?: {
   endDate?: Date;
 }): Promise<Event[]> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot list events: database not available");
-    return [];
-  }
-
+  if (!db) return [];
   try {
     const conditions = [];
-
-    // 기본값: 현재 시점에서 1년 후까지의 행사만 표시
     const now = new Date();
     const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
     const startDate = filters?.startDate || now;
     const endDate = filters?.endDate || oneYearLater;
 
-    if (filters?.region) {
-      conditions.push(eq(events.region, filters.region));
-    }
+    if (filters?.region) conditions.push(eq(events.region, filters.region));
     if (filters?.search) {
-      conditions.push(like(events.name, `%${filters.search}%`));
+      conditions.push(or(like(events.name, `%${filters.search}%`), like(events.location, `%${filters.search}%`)));
     }
-    
-    // 날짜 범위 필터 적용
     conditions.push(gte(events.eventDate, startDate));
     conditions.push(lte(events.eventDate, endDate));
 
     let query = db.select().from(events);
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const result = await query.orderBy(asc(events.eventDate));
-    return result;
+    if (conditions.length > 0) query = query.where(and(...conditions)) as any;
+    return query.orderBy(asc(events.eventDate));
   } catch (error) {
     console.error("[Database] Failed to list events:", error);
     return [];
@@ -174,11 +141,7 @@ export async function listEvents(filters?: {
 
 export async function updateEvent(id: number, data: Partial<InsertEvent>): Promise<Event | null> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot update event: database not available");
-    return null;
-  }
-
+  if (!db) return null;
   try {
     await db.update(events).set({ ...data, updatedAt: new Date() }).where(eq(events.id, id));
     return getEventById(id);
@@ -190,11 +153,7 @@ export async function updateEvent(id: number, data: Partial<InsertEvent>): Promi
 
 export async function deleteEvent(id: number): Promise<boolean> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot delete event: database not available");
-    return false;
-  }
-
+  if (!db) return false;
   try {
     await db.delete(events).where(eq(events.id, id));
     return true;
@@ -208,16 +167,11 @@ export async function deleteEvent(id: number): Promise<boolean> {
 
 export async function createSubscription(data: InsertSubscription): Promise<Subscription | null> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot create subscription: database not available");
-    return null;
-  }
-
+  if (!db) return null;
   try {
     const result = await db.insert(subscriptions).values(data);
     const subscriptionId = result[0]?.insertId;
     if (!subscriptionId) return null;
-
     const created = await db.select().from(subscriptions).where(eq(subscriptions.id, subscriptionId as number)).limit(1);
     return created[0] || null;
   } catch (error) {
@@ -228,11 +182,7 @@ export async function createSubscription(data: InsertSubscription): Promise<Subs
 
 export async function getSubscription(userId: number, eventId: number): Promise<Subscription | null> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get subscription: database not available");
-    return null;
-  }
-
+  if (!db) return null;
   try {
     const result = await db
       .select()
@@ -248,27 +198,34 @@ export async function getSubscription(userId: number, eventId: number): Promise<
 
 export async function getUserSubscriptions(userId: number): Promise<Subscription[]> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user subscriptions: database not available");
-    return [];
-  }
-
+  if (!db) return [];
   try {
-    const result = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId));
-    return result;
+    return db.select().from(subscriptions).where(eq(subscriptions.userId, userId));
   } catch (error) {
     console.error("[Database] Failed to get user subscriptions:", error);
+    return [];
+  }
+}
+
+export async function updateSubscription(
+  id: number,
+  data: Partial<Pick<InsertSubscription, "notifyOneDayBefore" | "notifyOneHourBefore">>
+): Promise<Subscription | null> {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    await db.update(subscriptions).set(data).where(eq(subscriptions.id, id));
+    const result = await db.select().from(subscriptions).where(eq(subscriptions.id, id)).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to update subscription:", error);
     throw error;
   }
 }
 
 export async function deleteSubscription(id: number): Promise<boolean> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot delete subscription: database not available");
-    return false;
-  }
-
+  if (!db) return false;
   try {
     await db.delete(subscriptions).where(eq(subscriptions.id, id));
     return true;
@@ -282,16 +239,11 @@ export async function deleteSubscription(id: number): Promise<boolean> {
 
 export async function createNotification(data: InsertNotification): Promise<Notification | null> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot create notification: database not available");
-    return null;
-  }
-
+  if (!db) return null;
   try {
     const result = await db.insert(notifications).values(data);
     const notificationId = result[0]?.insertId;
     if (!notificationId) return null;
-
     const created = await db.select().from(notifications).where(eq(notifications.id, notificationId as number)).limit(1);
     return created[0] || null;
   } catch (error) {
@@ -302,62 +254,87 @@ export async function createNotification(data: InsertNotification): Promise<Noti
 
 export async function getUserNotifications(userId: number, limit = 20): Promise<Notification[]> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user notifications: database not available");
-    return [];
-  }
-
+  if (!db) return [];
   try {
-    const result = await db
+    return db
       .select()
       .from(notifications)
       .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.createdAt))
       .limit(limit);
-    return result;
   } catch (error) {
     console.error("[Database] Failed to get user notifications:", error);
-    throw error;
+    return [];
   }
 }
 
 export async function getPendingNotifications(): Promise<Notification[]> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get pending notifications: database not available");
-    return [];
-  }
-
+  if (!db) return [];
   try {
-    const result = await db.select().from(notifications).where(eq(notifications.status, "pending"));
-    return result;
+    return db.select().from(notifications).where(eq(notifications.status, "pending"));
   } catch (error) {
     console.error("[Database] Failed to get pending notifications:", error);
-    throw error;
+    return [];
   }
 }
 
-export async function updateNotificationStatus(id: number, status: "sent" | "failed", failureReason?: string): Promise<Notification | null> {
+export async function updateNotificationStatus(
+  id: number,
+  status: "sent" | "failed",
+  failureReason?: string
+): Promise<Notification | null> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot update notification: database not available");
-    return null;
-  }
-
+  if (!db) return null;
   try {
     await db
       .update(notifications)
-      .set({
-        status,
-        sentAt: status === "sent" ? new Date() : undefined,
-        failureReason: failureReason || null,
-      })
+      .set({ status, sentAt: status === "sent" ? new Date() : undefined, failureReason: failureReason || null })
       .where(eq(notifications.id, id));
-
     const result = await db.select().from(notifications).where(eq(notifications.id, id)).limit(1);
     return result[0] || null;
   } catch (error) {
     console.error("[Database] Failed to update notification:", error);
     throw error;
+  }
+}
+
+// ============ Push Subscription Queries ============
+
+export async function savePushSubscription(data: InsertPushSubscription): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot save push subscription: database not available");
+    return;
+  }
+  try {
+    await db
+      .insert(pushSubscriptions)
+      .values(data)
+      .onDuplicateKeyUpdate({ set: { p256dh: data.p256dh, auth: data.auth } });
+  } catch (error) {
+    console.error("[Database] Failed to save push subscription:", error);
+    throw error;
+  }
+}
+
+export async function getPushSubscriptionsByUserId(userId: number): Promise<PushSubscription[]> {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    return db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to get push subscriptions:", error);
+    return [];
+  }
+}
+
+export async function deletePushSubscription(endpoint: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+  } catch (error) {
+    console.error("[Database] Failed to delete push subscription:", error);
   }
 }

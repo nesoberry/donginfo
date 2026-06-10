@@ -4,20 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles } from "lucide-react";
+import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { usePushNotification } from "@/hooks/usePushNotification";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCosplayOnly, setShowCosplayOnly] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
+  const { isSupported, isSubscribed, isLoading: pushLoading, subscribe } = usePushNotification();
 
   // 행사 목록 조회
   const { data: events = [], isLoading } = trpc.events.list.useQuery({
@@ -26,14 +29,11 @@ export default function Home() {
 
 
 
-  // 필터링된 행사 목록
+  // 필터링된 행사 목록 (검색은 서버에서 처리, 코스프레 필터만 클라이언트에서 처리)
   const filteredEvents = useMemo(() => {
-    return events.filter(event => {
-      if (searchTerm && !event.name.toLowerCase().includes(searchTerm.toLowerCase()) && !event.location.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-      if (showCosplayOnly && event.allowsCosplay === 'no') return false;
-      return true;
-    });
-  }, [events, searchTerm, showCosplayOnly]);
+    if (!showCosplayOnly) return events;
+    return events.filter(event => event.allowsCosplay !== 'no');
+  }, [events, showCosplayOnly]);
 
   const handleEventClick = (eventId: number) => {
     setLocation(`/event/${eventId}` as string);
@@ -42,6 +42,8 @@ export default function Home() {
   const handleAdminClick = () => {
     setLocation("/admin" as string);
   };
+
+  const showBanner = isAuthenticated && isSupported && !isSubscribed && !bannerDismissed;
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,11 +54,39 @@ export default function Home() {
           <LayoutGrid className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">동인 행사 일정</h1>
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={(credentialResponse) => console.log("🎉 성공:", credentialResponse)}
-              onError={() => console.log("😭 실패")}
-            />
-          </GoogleOAuthProvider>
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              console.log("1. 구글에서 토큰 받음!", credentialResponse);
+              
+              try {
+                // 2. 우리가 만든 백엔드 도로(/api/auth/google)로 토큰 배달!
+                const apiUrl = import.meta.env.VITE_API_URL || "";
+                const res = await fetch(`${apiUrl}/api/auth/google`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ credential: credentialResponse.credential }),
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                  console.log("🎉 3. 백엔드 로그인 최종 성공!", data);
+                  alert("로그인에 성공했습니다!");
+                  // 로그인 성공 후 페이지를 새로고침해서 유저 정보를 반영
+                  window.location.reload(); 
+                } else {
+                  console.error("🚨 백엔드 거절:", data.error);
+                  alert("로그인 처리 중 문제가 발생했습니다.");
+                }
+              } catch (err) {
+                console.error("🚨 네트워크 통신 에러:", err);
+              }
+            }}
+            onError={() => {
+              console.log("😭 구글 창에서 로그인 실패");
+            }}
+          />
+        </GoogleOAuthProvider>
         </div>
           <div className="flex items-center gap-3">
             <Button
@@ -67,6 +97,16 @@ export default function Home() {
               <Calendar className="w-4 h-4" />
               캘린더
             </Button>
+            {isAuthenticated && (
+              <Button
+                onClick={() => setLocation("/notifications" as string)}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Bell className="w-4 h-4" />
+                알림
+              </Button>
+            )}
             {isAuthenticated && user?.role === "admin" && (
               <Button
                 onClick={handleAdminClick}
@@ -86,6 +126,38 @@ export default function Home() {
 
       {/* 메인 콘텐츠 */}
       <main className="container py-12">
+        {/* 푸시 알림 배너 */}
+        {showBanner && (
+          <div className="mb-8 flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-5 py-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-foreground">행사 알림을 받아보세요</p>
+                <p className="text-xs text-muted-foreground">예매 오픈일, 행사 전날 알림을 브라우저로 받을 수 있어요</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                size="sm"
+                onClick={async () => {
+                  await subscribe();
+                }}
+                disabled={pushLoading}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                알림 켜기
+              </Button>
+              <button
+                onClick={() => setBannerDismissed(true)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="닫기"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 검색 및 필터 섹션 */}
         <div className="mb-12">
           <div className="mb-6">

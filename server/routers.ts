@@ -11,9 +11,7 @@ export const appRouter = router({
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
@@ -28,17 +26,13 @@ export const appRouter = router({
           endDate: z.date().optional(),
         })
       )
-      .query(async ({ input }) => {
-        return db.listEvents(input);
-      }),
+      .query(async ({ input }) => db.listEvents(input)),
 
     getById: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const event = await db.getEventById(input.id);
-        if (!event) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
-        }
+        if (!event) throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
         return event;
       }),
 
@@ -53,16 +47,12 @@ export const appRouter = router({
           ticketLink: z.string().url().optional(),
           mapLink: z.string().url().optional(),
           region: z.string().optional(),
+          allowsCosplay: z.enum(["yes", "no", "limited"]).default("no").optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
-        const event = await db.createEvent({
-          ...input,
-          createdBy: ctx.user.id,
-        });
-        if (!event) {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create event" });
-        }
+        const event = await db.createEvent({ ...input, createdBy: ctx.user.id });
+        if (!event) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create event" });
         return event;
       }),
 
@@ -78,14 +68,13 @@ export const appRouter = router({
           ticketLink: z.string().url().optional(),
           mapLink: z.string().url().optional(),
           region: z.string().optional(),
+          allowsCosplay: z.enum(["yes", "no", "limited"]).optional(),
         })
       )
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
         const event = await db.updateEvent(id, data);
-        if (!event) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
-        }
+        if (!event) throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
         return event;
       }),
 
@@ -93,24 +82,18 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         const success = await db.deleteEvent(input.id);
-        if (!success) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
-        }
+        if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
         return { success: true };
       }),
   }),
 
   // ============ Subscriptions Router ============
   subscriptions: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
-      return db.getUserSubscriptions(ctx.user.id);
-    }),
+    list: protectedProcedure.query(async ({ ctx }) => db.getUserSubscriptions(ctx.user.id)),
 
     getByEventId: protectedProcedure
       .input(z.object({ eventId: z.number() }))
-      .query(async ({ input, ctx }) => {
-        return db.getSubscription(ctx.user.id, input.eventId);
-      }),
+      .query(async ({ input, ctx }) => db.getSubscription(ctx.user.id, input.eventId)),
 
     create: protectedProcedure
       .input(
@@ -121,38 +104,39 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        // Check if subscription already exists
         const existing = await db.getSubscription(ctx.user.id, input.eventId);
-        if (existing) {
-          throw new TRPCError({ code: "CONFLICT", message: "Already subscribed to this event" });
-        }
+        if (existing) throw new TRPCError({ code: "CONFLICT", message: "Already subscribed to this event" });
+        const subscription = await db.createSubscription({ userId: ctx.user.id, ...input });
+        if (!subscription) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create subscription" });
+        return subscription;
+      }),
 
-        const subscription = await db.createSubscription({
-          userId: ctx.user.id,
-          eventId: input.eventId,
-          notifyOneDayBefore: input.notifyOneDayBefore,
-          notifyOneHourBefore: input.notifyOneHourBefore,
-        });
-        if (!subscription) {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create subscription" });
-        }
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          notifyOneDayBefore: z.enum(["email", "inapp", "both", "none"]).optional(),
+          notifyOneHourBefore: z.enum(["email", "inapp", "both", "none"]).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userSubs = await db.getUserSubscriptions(ctx.user.id);
+        if (!userSubs.some(sub => sub.id === input.id))
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        const { id, ...data } = input;
+        const subscription = await db.updateSubscription(id, data);
+        if (!subscription) throw new TRPCError({ code: "NOT_FOUND", message: "Subscription not found" });
         return subscription;
       }),
 
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
-        // Verify ownership by checking if subscription belongs to user
-        const subscriptions = await db.getUserSubscriptions(ctx.user.id);
-        const isOwner = subscriptions.some(sub => sub.id === input.id);
-        if (!isOwner) {
+        const userSubs = await db.getUserSubscriptions(ctx.user.id);
+        if (!userSubs.some(sub => sub.id === input.id))
           throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
-        }
-
         const success = await db.deleteSubscription(input.id);
-        if (!success) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Subscription not found" });
-        }
+        if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Subscription not found" });
         return { success: true };
       }),
   }),
@@ -161,9 +145,48 @@ export const appRouter = router({
   notifications: router({
     list: protectedProcedure
       .input(z.object({ limit: z.number().default(20) }))
-      .query(async ({ input, ctx }) => {
-        return db.getUserNotifications(ctx.user.id, input.limit);
+      .query(async ({ input, ctx }) => db.getUserNotifications(ctx.user.id, input.limit)),
+  }),
+
+  // ============ Push Notifications Router ============
+  push: router({
+    /** VAPID 공개키 반환 (클라이언트가 구독 요청 시 필요) */
+    getPublicKey: publicProcedure.query(() => ({
+      publicKey: process.env.VAPID_PUBLIC_KEY ?? "",
+    })),
+
+    /** 브라우저 푸시 구독 저장 */
+    subscribe: protectedProcedure
+      .input(
+        z.object({
+          endpoint: z.string().url(),
+          p256dh: z.string(),
+          auth: z.string(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await db.savePushSubscription({
+          userId: ctx.user.id,
+          endpoint: input.endpoint,
+          p256dh: input.p256dh,
+          auth: input.auth,
+        });
+        return { success: true };
       }),
+
+    /** 브라우저 푸시 구독 해제 */
+    unsubscribe: protectedProcedure
+      .input(z.object({ endpoint: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deletePushSubscription(input.endpoint);
+        return { success: true };
+      }),
+
+    /** 현재 사용자의 푸시 구독 상태 조회 */
+    getStatus: protectedProcedure.query(async ({ ctx }) => {
+      const subs = await db.getPushSubscriptionsByUserId(ctx.user.id);
+      return { isSubscribed: subs.length > 0 };
+    }),
   }),
 });
 

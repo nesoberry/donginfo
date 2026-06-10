@@ -3,19 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, ArrowLeft, Bell, BellOff } from "lucide-react";
+import { Calendar, MapPin, Ticket, ArrowLeft, Bell, BellOff, BellRing } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useState } from "react";
+import { usePushNotification } from "@/hooks/usePushNotification";
+
 import { toast } from "sonner";
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const utils = trpc.useUtils();
+  const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotification();
 
   const eventId = parseInt(id || "0", 10);
 
@@ -34,7 +36,7 @@ export default function EventDetail() {
   // 구독 생성
   const createSubscription = trpc.subscriptions.create.useMutation({
     onSuccess: () => {
-      setIsSubscribed(true);
+      utils.subscriptions.getByEventId.invalidate({ eventId });
       toast.success("알림 구독이 완료되었습니다");
     },
     onError: (error) => {
@@ -45,7 +47,7 @@ export default function EventDetail() {
   // 구독 삭제
   const deleteSubscription = trpc.subscriptions.delete.useMutation({
     onSuccess: () => {
-      setIsSubscribed(false);
+      utils.subscriptions.getByEventId.invalidate({ eventId });
       toast.success("알림 구독이 취소되었습니다");
     },
     onError: (error) => {
@@ -59,7 +61,7 @@ export default function EventDetail() {
       return;
     }
 
-    if (isSubscribed && subscription) {
+    if (subscription) {
       deleteSubscription.mutate({ id: subscription.id });
     } else {
       createSubscription.mutate({
@@ -277,6 +279,29 @@ export default function EventDetail() {
                       </>
                     )}
                   </Button>
+
+                  {pushSupported && (
+                    <Button
+                      onClick={pushSubscribed ? pushUnsubscribe : pushSubscribe}
+                      disabled={pushLoading}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {pushLoading ? (
+                        <Spinner className="w-4 h-4 mr-2" />
+                      ) : pushSubscribed ? (
+                        <>
+                          <BellOff className="w-4 h-4 mr-2" />
+                          브라우저 알림 끄기
+                        </>
+                      ) : (
+                        <>
+                          <BellRing className="w-4 h-4 mr-2" />
+                          브라우저 알림 설정
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">

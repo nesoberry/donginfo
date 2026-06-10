@@ -25,6 +25,7 @@ export default function AdminPanel() {
     ticketLink: "",
     mapLink: "",
     region: "",
+    allowsCosplay: "no" as "yes" | "no" | "limited",
   });
 
   // 행사 목록 조회
@@ -75,6 +76,7 @@ export default function AdminPanel() {
       ticketLink: "",
       mapLink: "",
       region: "",
+      allowsCosplay: "no",
     });
     setEditingId(null);
     setShowForm(false);
@@ -90,6 +92,7 @@ export default function AdminPanel() {
       ticketLink: event.ticketLink || "",
       mapLink: event.mapLink || "",
       region: event.region || "",
+      allowsCosplay: (event.allowsCosplay as "yes" | "no" | "limited") || "no",
     });
     setEditingId(event.id);
     setShowForm(true);
@@ -112,6 +115,7 @@ export default function AdminPanel() {
       ticketLink: formData.ticketLink || undefined,
       mapLink: formData.mapLink || undefined,
       region: formData.region || undefined,
+      allowsCosplay: formData.allowsCosplay,
     };
 
     if (editingId) {
@@ -275,6 +279,23 @@ export default function AdminPanel() {
                     placeholder="https://..."
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-2 block">
+                  코스프레 허용 여부
+                </label>
+                <select
+                  value={formData.allowsCosplay}
+                  onChange={(e) =>
+                    setFormData({ ...formData, allowsCosplay: e.target.value as "yes" | "no" | "limited" })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="no">불가</option>
+                  <option value="yes">가능</option>
+                  <option value="limited">제한적 허용</option>
+                </select>
               </div>
 
               <div>
