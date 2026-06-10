@@ -291,4 +291,37 @@ export default function EventDetail() {
                         <Spinner className="w-4 h-4 mr-2" />
                       ) : pushSubscribed ? (
                         <>
-                          <BellOff className="w-4 h-4 mr-2" 
+                          <BellOff className="w-4 h-4 mr-2" />
+                          브라우저 알림 끄기
+                        </>
+                      ) : (
+                        <>
+                          <BellRing className="w-4 h-4 mr-2" />
+                          브라우저 알림 설정
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    알림을 받으려면 로그인이 필요합니다
+                  </p>
+                  <Button
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => {
+                      toast.info("로그인 기능은 추후 구현됩니다");
+                    }}
+                  >
+                    로그인하기
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
