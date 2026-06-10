@@ -310,11 +310,9 @@ export default function EventDetail() {
                   </p>
                   <Button
                     className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => {
-                      toast.info("로그인 기능은 추후 구현됩니다");
-                    }}
+                    onClick={() => setLocation("/")}
                   >
-                    로그인하기
+                    로그인하러 가기
                   </Button>
                 </div>
               )}
