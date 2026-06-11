@@ -125,11 +125,10 @@ function EventDetailInner() {
     <div className="min-h-screen bg-background">
       {/* 헤더 */}
       <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
-        <div className="container py-4">
+        <div className="container px-4 py-3">
           <Button
             variant="outline"
             onClick={() => setLocation("/")}
-            className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             돌아가기
@@ -138,14 +137,14 @@ function EventDetailInner() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="container px-4 py-6 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* 왼쪽: 행사 정보 */}
           <div className="lg:col-span-2">
-            <Card className="event-card p-8">
+            <Card className="event-card p-4 sm:p-8">
               {/* 제목 및 배지 */}
-              <div className="mb-6">
-                <h1 className="text-4xl font-bold text-foreground mb-4">
+              <div className="mb-4 sm:mb-6">
+                <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-3 sm:mb-4">
                   {event.name}
                 </h1>
                 <div className="flex flex-wrap gap-2">
@@ -156,8 +155,8 @@ function EventDetailInner() {
 
               {/* 설명 */}
               {event.description && (
-                <div className="mb-8">
-                  <p className="text-lg text-foreground leading-relaxed">
+                <div className="mb-6 sm:mb-8">
+                  <p className="text-base sm:text-lg text-foreground leading-relaxed">
                     {event.description}
                   </p>
                 </div>
@@ -167,13 +166,13 @@ function EventDetailInner() {
               <div className="section-divider" />
 
               {/* 행사 정보 */}
-              <div className="space-y-6 mb-8">
+              <div className="space-y-5 sm:space-y-6 mb-6 sm:mb-8">
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground mb-2">
                     행사 날짜
                   </h3>
-                  <div className="flex items-center gap-3 text-lg">
-                    <Calendar className="w-5 h-5 text-primary" />
+                  <div className="flex items-center gap-3 text-base sm:text-lg">
+                    <Calendar className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-foreground">
                       {format(new Date(event.eventDate), "yyyy년 M월 d일 (EEEE)", {
                         locale: ko,
@@ -186,8 +185,8 @@ function EventDetailInner() {
                   <h3 className="text-sm font-semibold text-muted-foreground mb-2">
                     장소
                   </h3>
-                  <div className="flex items-center gap-3 text-lg">
-                    <MapPin className="w-5 h-5 text-primary" />
+                  <div className="flex items-center gap-3 text-base sm:text-lg">
+                    <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-foreground">{event.location}</span>
                   </div>
                 </div>
@@ -196,8 +195,8 @@ function EventDetailInner() {
                   <h3 className="text-sm font-semibold text-muted-foreground mb-2">
                     예매 오픈
                   </h3>
-                  <div className="flex items-center gap-3 text-lg">
-                    <Ticket className="w-5 h-5 text-primary" />
+                  <div className="flex items-center gap-3 text-base sm:text-lg">
+                    <Ticket className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-foreground">
                       {format(new Date(event.ticketOpenDate), "yyyy년 M월 d일 HH:mm", {
                         locale: ko,
@@ -251,7 +250,7 @@ function EventDetailInner() {
 
           {/* 오른쪽: 알림 구독 */}
           <div>
-            <Card className="event-card p-6 sticky top-24">
+            <Card className="event-card p-4 sm:p-6 sticky top-20">
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 예매 알림 받기
               </h3>
@@ -302,11 +301,10 @@ function EventDetailInner() {
                   <p className="text-sm text-muted-foreground">
                     로그인하면 이 페이지를 열지 않아도 스마트폰·PC 화면에 팝업으로 알림이 와요
                   </p>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center overflow-hidden">
                     <GoogleLogin
                       onSuccess={handleGoogleLoginSuccess}
                       onError={() => toast.error("구글 로그인 실패")}
-                      width="320"
                     />
                   </div>
                 </div>

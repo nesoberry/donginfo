@@ -123,30 +123,62 @@ export default function Home() {
               </Button>
             ) : (
               <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-                <GoogleLogin
-                  onSuccess={async (credentialResponse) => {
-                    try {
-                      const apiUrl = import.meta.env.VITE_API_URL || "";
-                      const res = await fetch(`${apiUrl}/api/auth/google`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        credentials: "include",
-                        body: JSON.stringify({ credential: credentialResponse.credential }),
-                      });
-                      const data = await res.json();
-                      if (res.ok) {
-                        window.location.reload();
-                      } else {
-                        console.error("백엔드 거절:", data.error);
-                        alert("로그인 처리 중 문제가 발생했습니다.");
+                {/* 모바일: 아이콘만 표시 */}
+                <div className="sm:hidden">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        const apiUrl = import.meta.env.VITE_API_URL || "";
+                        const res = await fetch(`${apiUrl}/api/auth/google`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ credential: credentialResponse.credential }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          window.location.reload();
+                        } else {
+                          console.error("백엔드 거절:", data.error);
+                          alert("로그인 처리 중 문제가 발생했습니다.");
+                        }
+                      } catch (err) {
+                        console.error("네트워크 통신 에러:", err);
                       }
-                    } catch (err) {
-                      console.error("네트워크 통신 에러:", err);
-                    }
-                  }}
-                  onError={() => console.log("구글 로그인 실패")}
-                  size="small"
-                />
+                    }}
+                    onError={() => console.log("구글 로그인 실패")}
+                    type="icon"
+                    shape="circle"
+                    size="medium"
+                  />
+                </div>
+                {/* 데스크탑: 전체 버튼 표시 */}
+                <div className="hidden sm:block">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        const apiUrl = import.meta.env.VITE_API_URL || "";
+                        const res = await fetch(`${apiUrl}/api/auth/google`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ credential: credentialResponse.credential }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          window.location.reload();
+                        } else {
+                          console.error("백엔드 거절:", data.error);
+                          alert("로그인 처리 중 문제가 발생했습니다.");
+                        }
+                      } catch (err) {
+                        console.error("네트워크 통신 에러:", err);
+                      }
+                    }}
+                    onError={() => console.log("구글 로그인 실패")}
+                    size="small"
+                  />
+                </div>
               </GoogleOAuthProvider>
             )}
           </div>
