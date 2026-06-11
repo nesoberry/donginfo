@@ -118,6 +118,7 @@ export async function processNotificationsHandler(req: Request, res: Response) {
         successCount++;
       } catch (error) {
         failureCount++;
+        console.error(`[Notification] id=${notification.id} type=${notification.notificationType} 발송 실패:`, error);
         await db
           .update(notifications)
           .set({
