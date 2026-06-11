@@ -106,7 +106,6 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          {/* 월 이동 네비게이션 */}
           <nav
             className="flex w-fit items-center gap-1 rounded-full border border-violet-100 bg-violet-50/80 p-1 shadow-[0_10px_30px_rgba(124,58,237,0.12)] sm:absolute sm:left-1/2 sm:-translate-x-1/2"
             aria-label="월 이동"
@@ -132,11 +131,11 @@ export default function CalendarPage() {
         </div>
       </header>
 
-      {/* 캘린더 + 패널 영역 */}
-      <section className="min-h-0 flex-1 flex flex-col p-3 sm:p-4 gap-3 overflow-y-auto">
+      {/* 캘린더 영역 */}
+      {/* 모바일: 스크롤 가능 / PC: 화면 꽉 채움 */}
+      <section className="min-h-0 flex-1 flex flex-col p-3 sm:p-4 gap-3 overflow-y-auto sm:overflow-hidden">
 
-        {/* 캘린더 그리드 */}
-        <div className="grid grid-rows-[30px_1fr] shrink-0 rounded-[1.35rem] border border-[#dde5ef] bg-white shadow-[0_18px_60px_rgba(19,24,38,0.08)] overflow-hidden">
+        <div className="grid grid-rows-[30px_1fr] sm:h-full shrink-0 sm:shrink rounded-[1.35rem] border border-[#dde5ef] bg-white shadow-[0_18px_60px_rgba(19,24,38,0.08)] overflow-hidden">
           {/* 요일 헤더 */}
           <div className="grid grid-cols-7 border-b border-[#dde5ef] bg-[#eef3f8]/60">
             {weekDays.map((day, index) => (
@@ -164,18 +163,19 @@ export default function CalendarPage() {
                 <article
                   key={day.toISOString()}
                   onClick={() => handleDayClick(day)}
-                  className={`border-r border-b border-[#dde5ef]/90 p-1 last:border-r-0 flex flex-col items-center cursor-pointer transition-colors ${
-                    isSelected ? 'bg-violet-50' : 'hover:bg-[#f7f8fb]'
-                  }`}
+                  className={`min-h-0 border-r border-b border-[#dde5ef]/90 last:border-r-0 flex flex-col cursor-pointer transition-colors
+                    p-1 sm:p-2
+                    ${isSelected ? 'bg-violet-50 sm:bg-transparent' : 'hover:bg-[#f7f8fb]'}
+                  `}
                 >
                   {/* 날짜 숫자 */}
-                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full mb-1 mt-1">
+                  <div className="mb-1 flex h-7 sm:h-8 shrink-0 items-center justify-center">
                     <span
                       className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-[13px] sm:text-[15px] font-bold leading-none transition-colors ${
                         isToday
                           ? 'bg-violet-600 text-white'
                           : isSelected
-                          ? 'bg-violet-100 text-violet-700'
+                          ? 'bg-violet-100 text-violet-700 sm:bg-transparent sm:text-[#172033]/75'
                           : inMonth
                           ? 'text-[#172033]/75'
                           : 'text-[#697386]/45'
@@ -185,66 +185,81 @@ export default function CalendarPage() {
                     </span>
                   </div>
 
-                  {/* 도트 */}
+                  {/* 모바일: 도트 표시 */}
                   {dotCount > 0 && (
-                    <div className="flex gap-[3px] justify-center">
+                    <div className="flex gap-[3px] justify-center sm:hidden">
                       {Array.from({ length: dotCount }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-[5px] h-[5px] sm:w-[6px] sm:h-[6px] rounded-full bg-violet-500"
-                        />
+                        <div key={i} className="w-[5px] h-[5px] rounded-full bg-violet-500" />
                       ))}
                     </div>
                   )}
+
+                  {/* PC: 텍스트 뱃지 */}
+                  <div className="hidden sm:block space-y-1 overflow-hidden leading-tight">
+                    {dayEvents.slice(0, 3).map((event) => (
+                      <div
+                        key={event.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLocation(`/event/${event.id}`);
+                        }}
+                        className="flex min-h-[29px] cursor-pointer items-center truncate rounded-md bg-violet-600 px-2 py-1.5 text-[15px] font-bold text-white shadow-[0_8px_18px_rgba(124,58,237,0.24)] transition hover:bg-violet-700 lg:min-h-[43px] xl:min-h-[48px]"
+                        title={event.name}
+                      >
+                        {event.name}
+                      </div>
+                    ))}
+                    {dayEvents.length > 3 && (
+                      <div className="px-2 text-[11px] font-semibold text-[#697386]">
+                        +{dayEvents.length - 3}개
+                      </div>
+                    )}
+                  </div>
                 </article>
               );
             })}
           </div>
         </div>
 
-        {/* 하단 패널 */}
-        {selectedDate ? (
-          <div className="shrink-0 rounded-[1.35rem] border border-[#dde5ef] bg-white shadow-[0_18px_60px_rgba(19,24,38,0.08)] overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#dde5ef] bg-[#eef3f8]/60">
-              <p className="text-sm font-bold text-violet-900">
-                {format(selectedDate, 'M월 d일 (EEEE)', { locale: ko })}
-              </p>
-            </div>
-
-            {selectedEvents.length === 0 ? (
-              <div className="px-4 py-6 text-center text-sm text-[#697386]">
-                이 날에는 행사가 없습니다
+        {/* 하단 패널: 모바일 전용 */}
+        <div className="sm:hidden shrink-0">
+          {selectedDate ? (
+            <div className="rounded-[1.35rem] border border-[#dde5ef] bg-white shadow-[0_18px_60px_rgba(19,24,38,0.08)] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#dde5ef] bg-[#eef3f8]/60">
+                <p className="text-sm font-bold text-violet-900">
+                  {format(selectedDate, 'M월 d일 (EEEE)', { locale: ko })}
+                </p>
               </div>
-            ) : (
-              <ul>
-                {selectedEvents.map((event, idx) => (
-                  <li
-                    key={event.id}
-                    onClick={() => setLocation(`/event/${event.id}`)}
-                    className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-violet-50 transition-colors ${
-                      idx < selectedEvents.length - 1 ? 'border-b border-[#dde5ef]/70' : ''
-                    }`}
-                  >
-                    <div className="w-2 h-2 rounded-full bg-violet-500 shrink-0" />
-                    <span className="flex-1 text-sm font-semibold text-[#172033]">
-                      {event.name}
-                    </span>
-                    {event.location && (
-                      <span className="text-xs text-[#697386] shrink-0 hidden sm:block">
-                        {event.location}
+              {selectedEvents.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-[#697386]">
+                  이 날에는 행사가 없습니다
+                </div>
+              ) : (
+                <ul>
+                  {selectedEvents.map((event, idx) => (
+                    <li
+                      key={event.id}
+                      onClick={() => setLocation(`/event/${event.id}`)}
+                      className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-violet-50 transition-colors ${
+                        idx < selectedEvents.length - 1 ? 'border-b border-[#dde5ef]/70' : ''
+                      }`}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-violet-500 shrink-0" />
+                      <span className="flex-1 text-sm font-semibold text-[#172033]">
+                        {event.name}
                       </span>
-                    )}
-                    <ArrowRight className="w-4 h-4 text-[#697386] shrink-0" />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ) : (
-          <p className="text-center text-xs text-[#697386] pb-2">
-            날짜를 탭하면 행사 목록을 볼 수 있어요
-          </p>
-        )}
+                      <ArrowRight className="w-4 h-4 text-[#697386] shrink-0" />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : (
+            <p className="text-center text-xs text-[#697386] py-2">
+              날짜를 탭하면 행사 목록을 볼 수 있어요
+            </p>
+          )}
+        </div>
       </section>
     </main>
   );
