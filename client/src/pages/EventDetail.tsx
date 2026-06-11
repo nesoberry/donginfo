@@ -48,31 +48,31 @@ function EventDetailInner() {
     { enabled: eventId > 0 }
   );
 
-  // 구독 상태 조회
+  // 알림 상태 조회
   const { data: subscription } = trpc.subscriptions.getByEventId.useQuery(
     { eventId },
     { enabled: isAuthenticated && eventId > 0 }
   );
 
-  // 구독 생성
+  // 알림 설정
   const createSubscription = trpc.subscriptions.create.useMutation({
     onSuccess: () => {
       utils.subscriptions.getByEventId.invalidate({ eventId });
-      toast.success("알림 구독이 완료되었습니다");
+      toast.success("알림 설정이 완료되었습니다");
     },
     onError: (error) => {
-      toast.error(error.message || "구독 중 오류가 발생했습니다");
+      toast.error(error.message || "오류가 발생했습니다");
     },
   });
 
-  // 구독 삭제
+  // 알림 해제
   const deleteSubscription = trpc.subscriptions.delete.useMutation({
     onSuccess: () => {
       utils.subscriptions.getByEventId.invalidate({ eventId });
-      toast.success("알림 구독이 취소되었습니다");
+      toast.success("알림이 해제되었습니다");
     },
     onError: (error) => {
-      toast.error(error.message || "구독 취소 중 오류가 발생했습니다");
+      toast.error(error.message || "오류가 발생했습니다");
     },
   });
 
