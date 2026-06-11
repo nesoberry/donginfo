@@ -275,10 +275,6 @@ function EventDetailInner() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-muted-foreground">
-                    로그인하면 이 페이지를 열지 않아도 스마트폰·PC 화면에 팝업으로 알림이 와요
-                  </p>
-
                   <Button
                     onClick={handleSubscribe}
                     disabled={createSubscription.isPending || deleteSubscription.isPending}
@@ -306,7 +302,7 @@ function EventDetailInner() {
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    알림을 받으려면 로그인이 필요합니다
+                    로그인하면 이 페이지를 열지 않아도 스마트폰·PC 화면에 팝업으로 알림이 와요
                   </p>
                   <Button
                     className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
