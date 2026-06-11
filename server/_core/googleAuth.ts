@@ -85,21 +85,44 @@ export function getSessionCookie(req: Request): string | undefined {
 }
 
 /**
+ * access_token으로 구글 사용자 정보를 가져온다.
+ */
+async function fetchGoogleUserInfo(accessToken: string) {
+  const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok) {
+    throw new Error("구글 사용자 정보를 가져올 수 없습니다");
+  }
+  const info = await response.json() as { sub?: string; email?: string; name?: string };
+  if (!info.sub) {
+    throw new Error("구글 사용자 정보에서 고유 ID를 읽을 수 없습니다");
+  }
+  return {
+    sub: info.sub,
+    email: info.email ?? null,
+    name: info.name ?? null,
+  };
+}
+
+/**
  * [로그인 핸들러]
- * 화면에서 보낸 구글 ID 토큰을 받아서:
+ * 화면에서 보낸 구글 ID 토큰(credential) 또는 액세스 토큰(accessToken)을 받아서:
  * 1. 구글에 진짜인지 검증
  * 2. 사용자 정보를 DB에 저장(upsert)
  * 3. 로그인 쿠키를 발급
  */
 export async function googleLoginHandler(req: Request, res: Response) {
   try {
-    const { credential } = req.body as { credential?: string };
-    if (!credential) {
-      return res.status(400).json({ error: "구글 토큰(credential)이 없습니다" });
+    const { credential, accessToken } = req.body as { credential?: string; accessToken?: string };
+    if (!credential && !accessToken) {
+      return res.status(400).json({ error: "구글 토큰이 없습니다" });
     }
 
     // 1. 구글 토큰 검증
-    const googleUser = await verifyGoogleToken(credential);
+    const googleUser = credential
+      ? await verifyGoogleToken(credential)
+      : await fetchGoogleUserInfo(accessToken!);
 
     // 2. DB에 사용자 저장 (openId = google_ + 구글 고유번호)
     const openId = `google_${googleUser.sub}`;

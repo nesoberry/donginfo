@@ -8,14 +8,39 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 
 import { toast } from "sonner";
 
-export default function EventDetail() {
+function EventDetailInner() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || "";
+        const res = await fetch(`${apiUrl}/api/auth/google`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ accessToken: tokenResponse.access_token }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          console.error("백엔드 거절:", data.error);
+          toast.error("로그인 처리 중 문제가 발생했습니다.");
+        }
+      } catch (err) {
+        console.error("네트워크 통신 에러:", err);
+      }
+    },
+    onError: () => toast.error("구글 로그인 실패"),
+  });
 
   const eventId = parseInt(id || "0", 10);
 
@@ -285,9 +310,9 @@ export default function EventDetail() {
                   </p>
                   <Button
                     className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => setLocation("/")}
+                    onClick={() => googleLogin()}
                   >
-                    로그인하러 가기
+                    로그인하기
                   </Button>
                 </div>
               )}
@@ -296,5 +321,13 @@ export default function EventDetail() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function EventDetail() {
+  return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <EventDetailInner />
+    </GoogleOAuthProvider>
   );
 }
