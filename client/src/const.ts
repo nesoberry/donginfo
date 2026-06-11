@@ -8,7 +8,7 @@ const getOrigin = () => {
   return "http://localhost:3000";
 };
 
-// 로그인 URL — Google OAuth 고정
+// 로그인 URL — 세션 만료 시 홈으로 이동 (Google OAuth 로그인 버튼이 홈/이벤트 페이지에 있음)
 export const getLoginUrl = () => {
-  return `${getOrigin()}/api/auth/google`;
+  return "/";
 };

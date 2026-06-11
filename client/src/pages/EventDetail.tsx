@@ -89,8 +89,8 @@ function EventDetailInner() {
     } else {
       createSubscription.mutate({
         eventId,
-        notifyOneDayBefore: "push",
-        notifyOneHourBefore: "push",
+        notifyOneDayBefore: "inapp",
+        notifyOneHourBefore: "inapp",
       });
     }
   };
