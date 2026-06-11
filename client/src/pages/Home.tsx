@@ -307,6 +307,27 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* 푸터 */}
+      <footer className="border-t border-border bg-card mt-8">
+        <div className="container px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>© 2026 동인 행사 알리미. All rights reserved.</span>
+          <div className="flex gap-4">
+            <a
+              href="/privacy"
+              className="hover:text-foreground transition-colors"
+            >
+              개인정보처리방침
+            </a>
+            <a
+              href="/copyright"
+              className="hover:text-foreground transition-colors"
+            >
+              저작권 및 면책사항
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -9,6 +9,8 @@ import EventDetail from "./pages/EventDetail";
 import AdminPanel from "./pages/AdminPanel";
 import NotificationsPage from "./pages/NotificationsPage";
 import CalendarPage from "./pages/CalendarPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CopyrightPage from "./pages/CopyrightPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -19,6 +21,8 @@ function Router() {
       <Route path={"/event/:id"} component={EventDetail} />
       <Route path={"/admin"} component={AdminPanel} />
       <Route path={"/notifications"} component={NotificationsPage} />
+      <Route path={"/privacy"} component={PrivacyPolicy} />
+      <Route path={"/copyright"} component={CopyrightPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
