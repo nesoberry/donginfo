@@ -7,6 +7,13 @@ import { ArrowLeft } from "lucide-react";
 const NOTICES = [
   {
     date: "2026-06-11",
+    title: "사용자 편의 개선",
+    content: [
+      "행사 상세 페이지에서 바로 로그인할 수 있게 되었습니다.",
+    ],
+  },
+  {
+    date: "2026-06-11",
     title: "서비스 오픈",
     content: [
       "동인 행사 알리미 서비스를 정식으로 시작했습니다.",
