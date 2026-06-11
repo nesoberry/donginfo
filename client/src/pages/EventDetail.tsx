@@ -3,12 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, ArrowLeft, Bell, BellOff, BellRing } from "lucide-react";
+import { Calendar, MapPin, Ticket, ArrowLeft, Bell, BellOff } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { usePushNotification } from "@/hooks/usePushNotification";
 
 import { toast } from "sonner";
 
@@ -17,7 +16,6 @@ export default function EventDetail() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
-  const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotification();
 
   const eventId = parseInt(id || "0", 10);
 
@@ -66,8 +64,8 @@ export default function EventDetail() {
     } else {
       createSubscription.mutate({
         eventId,
-        notifyOneDayBefore: "both",
-        notifyOneHourBefore: "both",
+        notifyOneDayBefore: "push",
+        notifyOneHourBefore: "push",
       });
     }
   };
@@ -238,23 +236,23 @@ export default function EventDetail() {
               {isAuthenticated ? (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    예매 오픈 전에 알림을 받으세요
+                    예매 놓치지 마세요! 구독하면 아래 시점에 알림을 드려요.
                   </p>
 
                   <div className="space-y-2 text-sm text-muted-foreground">
                     <div className="flex items-start gap-2">
                       <span className="text-primary font-semibold mt-0.5">•</span>
-                      <span>D-1일 전 알림</span>
+                      <span>행사 하루 전 오후 6시</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-primary font-semibold mt-0.5">•</span>
-                      <span>예매 1시간 전 알림</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-primary font-semibold mt-0.5">•</span>
-                      <span>이메일 + 인앱 알림</span>
+                      <span>예매 오픈 1시간 전</span>
                     </div>
                   </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    로그인하면 이 페이지를 열지 않아도 스마트폰·PC 화면에 팝업으로 알림이 와요
+                  </p>
 
                   <Button
                     onClick={handleSubscribe}
@@ -275,33 +273,10 @@ export default function EventDetail() {
                     ) : (
                       <>
                         <Bell className="w-4 h-4 mr-2" />
-                        알림 구독하기
+                        알림 설정
                       </>
                     )}
                   </Button>
-
-                  {pushSupported && (
-                    <Button
-                      onClick={pushSubscribed ? pushUnsubscribe : pushSubscribe}
-                      disabled={pushLoading}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      {pushLoading ? (
-                        <Spinner className="w-4 h-4 mr-2" />
-                      ) : pushSubscribed ? (
-                        <>
-                          <BellOff className="w-4 h-4 mr-2" />
-                          브라우저 알림 끄기
-                        </>
-                      ) : (
-                        <>
-                          <BellRing className="w-4 h-4 mr-2" />
-                          브라우저 알림 설정
-                        </>
-                      )}
-                    </Button>
-                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
