@@ -48,20 +48,36 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath =
+  // Resolve dist/public path robustly: try import.meta.dirname first,
+  // fall back to process.cwd() if the directory doesn't exist.
+  const candidatePaths = [
     process.env.NODE_ENV === "development"
       ? path.resolve(import.meta.dirname, "../..", "dist", "public")
-      : path.resolve(import.meta.dirname, "public");
+      : path.resolve(import.meta.dirname, "public"),
+    path.resolve(process.cwd(), "dist", "public"),
+  ];
+  const distPath = candidatePaths.find(p => fs.existsSync(p)) ?? candidatePaths[0];
+
   if (!fs.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
+  } else {
+    console.log(`[Static] Serving frontend from: ${distPath}`);
   }
+
+  const indexPath = path.resolve(distPath, "index.html");
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // SPA fallback: serve index.html for all unmatched routes (client-side routing)
+  // Note: app.use without a path arg is the reliable catch-all in Express 4
+  app.use((_req, res) => {
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error(`[Static] Failed to serve index.html from ${indexPath}:`, err);
+        res.status(500).send("Server configuration error: frontend build not found.");
+      }
+    });
   });
 }

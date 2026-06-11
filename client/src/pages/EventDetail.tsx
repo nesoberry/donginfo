@@ -8,7 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 import { toast } from "sonner";
 
@@ -18,29 +18,27 @@ function EventDetailInner() {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL || "";
-        const res = await fetch(`${apiUrl}/api/auth/google`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ accessToken: tokenResponse.access_token }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          window.location.reload();
-        } else {
-          console.error("백엔드 거절:", data.error);
-          toast.error("로그인 처리 중 문제가 발생했습니다.");
-        }
-      } catch (err) {
-        console.error("네트워크 통신 에러:", err);
+  const handleGoogleLoginSuccess = async (credentialResponse: { credential?: string }) => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "";
+      const res = await fetch(`${apiUrl}/api/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        console.error("백엔드 거절:", data.error);
+        toast.error("로그인 처리 중 문제가 발생했습니다.");
       }
-    },
-    onError: () => toast.error("구글 로그인 실패"),
-  });
+    } catch (err) {
+      console.error("네트워크 통신 에러:", err);
+      toast.error("로그인 중 오류가 발생했습니다.");
+    }
+  };
 
   const eventId = parseInt(id || "0", 10);
 
@@ -304,12 +302,13 @@ function EventDetailInner() {
                   <p className="text-sm text-muted-foreground">
                     로그인하면 이 페이지를 열지 않아도 스마트폰·PC 화면에 팝업으로 알림이 와요
                   </p>
-                  <Button
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => googleLogin()}
-                  >
-                    로그인하기
-                  </Button>
+                  <div className="flex justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleLoginSuccess}
+                      onError={() => toast.error("구글 로그인 실패")}
+                      width="320"
+                    />
+                  </div>
                 </div>
               )}
             </Card>
