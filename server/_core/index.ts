@@ -2,11 +2,17 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import cron from "node-cron";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { sendTicketOpenNotificationHandler, processNotificationsHandler } from "../scheduled";
+import {
+  sendTicketOpenNotificationHandler,
+  processNotificationsHandler,
+  runTicketOpenNotification,
+  runProcessNotifications,
+} from "../scheduled";
 import { authRouter } from './authRouter';
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -78,6 +84,33 @@ app.use((req, res, next) => {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 🕐 내부 크론 스케줄러 (Railway 자동 실행 — 수동 명령어 불필요)
+  //   - 매 정시(KST 기준): 예매 오픈 1시간 전 알림 대상 탐색
+  //   - 매 정시 +5분:      대기 중인 알림 실제 발송
+  // ─────────────────────────────────────────────────────────────────────────
+  cron.schedule("0 * * * *", async () => {
+    console.log("[Cron] ticket-open-notification 실행");
+    try {
+      const result = await runTicketOpenNotification();
+      console.log("[Cron] ticket-open-notification 완료:", result);
+    } catch (err) {
+      console.error("[Cron] ticket-open-notification 에러:", err);
+    }
+  });
+
+  cron.schedule("5 * * * *", async () => {
+    console.log("[Cron] process-notifications 실행");
+    try {
+      const result = await runProcessNotifications();
+      console.log("[Cron] process-notifications 완료:", result);
+    } catch (err) {
+      console.error("[Cron] process-notifications 에러:", err);
+    }
+  });
+
+  console.log("[Cron] 스케줄러 등록 완료 — 매 정시 알림 탐색, 매 정시 +5분 알림 발송");
 }
 
 startServer().catch(console.error);
