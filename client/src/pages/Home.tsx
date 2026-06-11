@@ -55,6 +55,17 @@ export default function Home() {
 
           {/* 오른쪽: 버튼들 */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            {/* 공지 버튼 */}
+            <Button
+              onClick={() => setLocation("/notices" as string)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1.5 px-2 sm:px-3"
+            >
+              <span className="hidden sm:inline">공지</span>
+              <span className="sm:hidden text-xs">공지</span>
+            </Button>
+
             {/* 캘린더 버튼: 모바일은 아이콘만 */}
             <Button
               onClick={() => setLocation("/calendar" as string)}
