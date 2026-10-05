@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, like, desc, asc, or, sql } from "drizzle-orm";
+import { eq, and, gte, lte, like, desc, asc, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users, events, subscriptions, notifications, pushSubscriptions,
@@ -108,25 +108,25 @@ export async function getEventById(id: number): Promise<Event | null> {
   }
 }
 
+function toKstDay(d: Date): string {
+  return new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
 export async function findEventByNameAndDate(name: string, eventDate: Date): Promise<Event | null> {
   const db = await getDb();
   if (!db) return null;
   try {
     // Match on (name, KST calendar day) rather than exact timestamp:
     // scrapers report day-precision dates while seeded rows may carry a time.
-    const kst = new Date(eventDate.getTime() + 9 * 3600 * 1000);
-    const kstDay = kst.toISOString().slice(0, 10); // YYYY-MM-DD
-    const result = await db
+    // The day comparison is done in JS (not MySQL DATE arithmetic) so it stays
+    // correct regardless of the DB session timezone.
+    const rows = await db
       .select()
       .from(events)
-      .where(
-        and(
-          eq(events.name, name),
-          sql`DATE(${events.eventDate} + INTERVAL 9 HOUR) = ${kstDay}`
-        )
-      )
-      .limit(1);
-    return result[0] || null;
+      .where(eq(events.name, name))
+      .limit(20);
+    const kstDay = toKstDay(eventDate);
+    return rows.find((r) => toKstDay(new Date(r.eventDate)) === kstDay) || null;
   } catch (error) {
     console.error("[Database] Failed to find event:", error);
     throw error;
