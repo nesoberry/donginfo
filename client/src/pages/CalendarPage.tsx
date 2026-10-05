@@ -4,8 +4,14 @@ import { ChevronLeft, ChevronRight, Home, ChevronRight as ArrowRight } from 'luc
 import { useLocation } from 'wouter';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function CalendarPage() {
+  usePageMeta({
+    title: "동인 행사 캘린더 | 동인 행사 알리미",
+    description:
+      "월별 캘린더로 보는 전국 동인행사 일정. 코믹월드, 일러스타페스, 온리전 등 서브컬처 행사 날짜를 한눈에 확인하세요.",
+  });
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [, setLocation] = useLocation();

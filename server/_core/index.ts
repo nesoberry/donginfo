@@ -15,6 +15,7 @@ import {
 } from "../scheduled";
 import { authRouter } from './authRouter';
 import { ingestRouter } from '../ingest';
+import { sitemapRouter } from '../sitemap';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -62,6 +63,8 @@ app.use((req, res, next) => {
   app.use('/api/auth', authRouter);
   // Ingest API (scraper -> DB, Bearer API key auth)
   app.use('/api/ingest', ingestRouter);
+  // Dynamic sitemap.xml (proxied to www.donginfo.com/sitemap.xml via Vercel rewrite)
+  app.use(sitemapRouter);
   // tRPC API
   app.use(
     "/api/trpc",
