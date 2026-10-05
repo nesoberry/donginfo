@@ -93,3 +93,33 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
 
   return res.json({ inserted, skipped });
 });
+
+// DELETE /api/ingest/events — remove a single event by (name, eventDate).
+// Used to clean up bad data from the scraper pipeline (e.g. test entries,
+// mis-parsed events). Same Bearer key auth.
+const deleteBodySchema = z.object({
+  name: z.string().min(1),
+  eventDate: z.coerce.date(),
+});
+
+ingestRouter.delete("/events", checkApiKey, async (req: Request, res: Response) => {
+  const parsed = deleteBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "invalid body", details: parsed.error.flatten() });
+  }
+  try {
+    const existing = await db.findEventByNameAndDate(
+      parsed.data.name,
+      toSecondPrecision(parsed.data.eventDate)
+    );
+    if (!existing) {
+      return res.status(404).json({ error: "not found" });
+    }
+    const ok = await db.deleteEvent(existing.id);
+    if (!ok) throw new Error("deleteEvent returned false");
+    return res.json({ deleted: 1, id: existing.id });
+  } catch (err) {
+    console.error("[Ingest] Failed to delete event:", parsed.data.name, err);
+    return res.status(500).json({ error: "delete failed" });
+  }
+});
