@@ -11,6 +11,8 @@ import { ko } from "date-fns/locale";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 function EventDetailInner() {
   const { id } = useParams<{ id: string }>();
@@ -53,6 +55,42 @@ function EventDetailInner() {
     { eventId },
     { enabled: isAuthenticated && eventId > 0 }
   );
+
+  // SEO: 페이지별 타이틀/메타 + Event 구조화 데이터
+  const eventDateStr = event
+    ? format(new Date(event.eventDate), "yyyy년 M월 d일", { locale: ko })
+    : "";
+  usePageMeta({
+    title: event ? `${event.name} | 동인 행사 알리미` : "행사 상세 | 동인 행사 알리미",
+    description: event
+      ? `${eventDateStr} ${event.location}에서 열리는 ${event.name} 일정·장소·티켓 정보를 확인하세요.`
+      : undefined,
+  });
+
+  useEffect(() => {
+    if (!event) return;
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "event-jsonld";
+    script.text = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: event.name,
+      startDate: new Date(event.eventDate).toISOString(),
+      eventStatus: "https://schema.org/EventScheduled",
+      location: {
+        "@type": "Place",
+        name: event.location,
+        address: event.region ?? undefined,
+      },
+      description: event.description ?? undefined,
+      url: `https://www.donginfo.com/event/${event.id}`,
+    });
+    document.head.appendChild(script);
+    return () => {
+      document.getElementById("event-jsonld")?.remove();
+    };
+  }, [event]);
 
   // 알림 설정
   const createSubscription = trpc.subscriptions.create.useMutation({

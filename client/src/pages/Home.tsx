@@ -12,8 +12,14 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { usePushNotification } from "@/hooks/usePushNotification";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function Home() {
+  usePageMeta({
+    title: "전국 동인행사 일정 한눈에 | 동인 행사 알리미",
+    description:
+      "코믹월드, 일러스타페스, AGF 등 전국 동인·서브컬처 행사 일정을 한눈에. 날짜·장소·티켓 정보와 코스프레 가능 여부까지 확인하세요.",
+  });
   const { user, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
