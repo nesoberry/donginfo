@@ -14,6 +14,7 @@ import {
   runProcessNotifications,
 } from "../scheduled";
 import { authRouter } from './authRouter';
+import { ingestRouter } from '../ingest';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -59,6 +60,8 @@ app.use((req, res, next) => {
   app.post("/api/scheduled/ticket-open-notification", sendTicketOpenNotificationHandler);
   app.post("/api/scheduled/process-notifications", processNotificationsHandler);
   app.use('/api/auth', authRouter);
+  // Ingest API (scraper -> DB, Bearer API key auth)
+  app.use('/api/ingest', ingestRouter);
   // tRPC API
   app.use(
     "/api/trpc",

@@ -108,6 +108,22 @@ export async function getEventById(id: number): Promise<Event | null> {
   }
 }
 
+export async function findEventByNameAndDate(name: string, eventDate: Date): Promise<Event | null> {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const result = await db
+      .select()
+      .from(events)
+      .where(and(eq(events.name, name), eq(events.eventDate, eventDate)))
+      .limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to find event:", error);
+    throw error;
+  }
+}
+
 export async function listEvents(filters?: {
   region?: string;
   search?: string;
