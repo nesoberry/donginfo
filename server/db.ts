@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, like, desc, asc, or } from "drizzle-orm";
+import { eq, and, gte, lte, like, desc, asc, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users, events, subscriptions, notifications, pushSubscriptions,
@@ -112,10 +112,19 @@ export async function findEventByNameAndDate(name: string, eventDate: Date): Pro
   const db = await getDb();
   if (!db) return null;
   try {
+    // Match on (name, KST calendar day) rather than exact timestamp:
+    // scrapers report day-precision dates while seeded rows may carry a time.
+    const kst = new Date(eventDate.getTime() + 9 * 3600 * 1000);
+    const kstDay = kst.toISOString().slice(0, 10); // YYYY-MM-DD
     const result = await db
       .select()
       .from(events)
-      .where(and(eq(events.name, name), eq(events.eventDate, eventDate)))
+      .where(
+        and(
+          eq(events.name, name),
+          sql`DATE(${events.eventDate} + INTERVAL 9 HOUR) = ${kstDay}`
+        )
+      )
       .limit(1);
     return result[0] || null;
   } catch (error) {
