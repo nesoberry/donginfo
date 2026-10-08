@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { VERIFIED_FREE_EVENT_IDS } from "@/const";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 import { toast } from "sonner";
@@ -229,18 +230,22 @@ function EventDetailInner() {
                   </div>
                 </div>
 
-                {/* 사전예매 링크가 있는 행사에만 예매 버튼 표시 (날짜는 검증된 값이 아니라 표시하지 않음) */}
-                {event.ticketLink && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                      사전 예매
-                    </h3>
-                    <div className="flex items-center gap-3 text-base sm:text-lg">
-                      <Ticket className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span className="text-foreground">예매 진행 중</span>
-                    </div>
+                {/* 티켓 상태는 항상 명시 (모르면 "미정" — 침묵이 곧 "없음"으로 읽히는 것을 방지) */}
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+                    티켓
+                  </h3>
+                  <div className="flex items-center gap-3 text-base sm:text-lg">
+                    <Ticket className="w-5 h-5 text-primary flex-shrink-0" />
+                    {event.ticketLink ? (
+                      <span className="text-foreground">사전 예매 중</span>
+                    ) : VERIFIED_FREE_EVENT_IDS.includes(event.id) ? (
+                      <span className="text-foreground">무료 입장</span>
+                    ) : (
+                      <span className="text-foreground">미정</span>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
 
               {/* 구분선 */}
