@@ -1,5 +1,6 @@
 import { eq, and, gte, lte, like, desc, asc, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import {
   InsertUser, users, events, subscriptions, notifications, pushSubscriptions,
   Event, InsertEvent, Subscription, InsertSubscription, Notification, InsertNotification,
@@ -12,7 +13,16 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      // 명시적 커넥션 풀: 기본 풀은 keepalive가 없어서
+      // Railway 네트워크/DB의 idle 타임아웃에 죽은 커넥션을 물고 있다가
+      // 간헐적 500("Failed query")을 냄. keepalive로 idle 연결을 살려둠.
+      const pool = mysql.createPool({
+        uri: process.env.DATABASE_URL,
+        connectionLimit: 10,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000,
+      });
+      _db = drizzle(pool);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
