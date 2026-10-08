@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { getDb } from "./db";
-import { eq, and, gte, lte, ne } from "drizzle-orm";
+import { eq, and, gte, lte, ne, isNotNull } from "drizzle-orm";
 import { events, subscriptions, notifications, users, pushSubscriptions } from "../drizzle/schema";
 import nodemailer from "nodemailer";
 import webpush from "web-push";
@@ -55,7 +55,15 @@ export async function runTicketOpenNotification(): Promise<{ success: boolean; m
   const eventsOneHourBefore = await db
     .select()
     .from(events)
-    .where(and(gte(events.ticketOpenDate, oneHourBeforeStart), lte(events.ticketOpenDate, oneHourBeforeEnd)));
+    .where(
+      and(
+        gte(events.ticketOpenDate, oneHourBeforeStart),
+        lte(events.ticketOpenDate, oneHourBeforeEnd),
+        // 사전예매 링크가 있는 행사만: ticketOpenDate가 가짜 기본값인 경우가 있어
+        // 예매 자체를 하지 않는 행사에겐 예매 알림을 보내지 않음
+        isNotNull(events.ticketLink)
+      )
+    );
 
   for (const event of eventsOneHourBefore) {
     const eventSubscriptions = await db

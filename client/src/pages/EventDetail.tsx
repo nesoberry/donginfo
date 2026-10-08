@@ -229,19 +229,22 @@ function EventDetailInner() {
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                    예매 오픈
-                  </h3>
-                  <div className="flex items-center gap-3 text-base sm:text-lg">
-                    <Ticket className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-foreground">
-                      {format(new Date(event.ticketOpenDate), "yyyy년 M월 d일 HH:mm", {
-                        locale: ko,
-                      })}
-                    </span>
+                {/* 사전예매 링크가 있는 행사에만 예매 오픈 표시 (가짜 날짜 노출 방지) */}
+                {event.ticketLink && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+                      예매 오픈
+                    </h3>
+                    <div className="flex items-center gap-3 text-base sm:text-lg">
+                      <Ticket className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span className="text-foreground">
+                        {format(new Date(event.ticketOpenDate), "yyyy년 M월 d일 HH:mm", {
+                          locale: ko,
+                        })}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* 구분선 */}
@@ -290,7 +293,7 @@ function EventDetailInner() {
           <div>
             <Card className="event-card p-4 sm:p-6 sticky top-20">
               <h3 className="text-lg font-semibold text-foreground mb-4">
-                예매 알림 받기
+                {event.ticketLink ? "예매 알림 받기" : "행사 알림 받기"}
               </h3>
 
               {isAuthenticated ? (
@@ -304,10 +307,13 @@ function EventDetailInner() {
                       <span className="text-primary font-semibold mt-0.5">•</span>
                       <span>행사 하루 전 오후 6시</span>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-primary font-semibold mt-0.5">•</span>
-                      <span>예매 오픈 1시간 전</span>
-                    </div>
+                    {/* 사전예매가 있는 행사에만 예매 알림 안내 */}
+                    {event.ticketLink && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-primary font-semibold mt-0.5">•</span>
+                        <span>예매 오픈 1시간 전</span>
+                      </div>
+                    )}
                   </div>
 
                   <Button

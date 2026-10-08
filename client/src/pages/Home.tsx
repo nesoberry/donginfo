@@ -317,10 +317,13 @@ export default function Home() {
                   </div>
 
                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
-                    <div className="text-xs text-muted-foreground mb-2 sm:mb-3">
-                      <span className="font-semibold">예매 오픈:</span>{" "}
-                      {format(new Date(event.ticketOpenDate), "MMM dd, HH:mm", { locale: ko })}
-                    </div>
+                    {/* 사전예매 링크가 있는 행사에만 예매 오픈 표시 (가짜 날짜 노출 방지) */}
+                    {event.ticketLink && (
+                      <div className="text-xs text-muted-foreground mb-2 sm:mb-3">
+                        <span className="font-semibold">예매 오픈:</span>{" "}
+                        {format(new Date(event.ticketOpenDate), "MMM dd, HH:mm", { locale: ko })}
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       {event.ticketLink && (
                         <Button
