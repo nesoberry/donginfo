@@ -229,19 +229,15 @@ function EventDetailInner() {
                   </div>
                 </div>
 
-                {/* 사전예매 링크가 있는 행사에만 예매 오픈 표시 (가짜 날짜 노출 방지) */}
+                {/* 사전예매 링크가 있는 행사에만 예매 버튼 표시 (날짜는 검증된 값이 아니라 표시하지 않음) */}
                 {event.ticketLink && (
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                      예매 오픈
+                      사전 예매
                     </h3>
                     <div className="flex items-center gap-3 text-base sm:text-lg">
                       <Ticket className="w-5 h-5 text-primary flex-shrink-0" />
-                      <span className="text-foreground">
-                        {format(new Date(event.ticketOpenDate), "yyyy년 M월 d일 HH:mm", {
-                          locale: ko,
-                        })}
-                      </span>
+                      <span className="text-foreground">예매 진행 중</span>
                     </div>
                   </div>
                 )}
@@ -307,13 +303,6 @@ function EventDetailInner() {
                       <span className="text-primary font-semibold mt-0.5">•</span>
                       <span>행사 하루 전 오후 6시</span>
                     </div>
-                    {/* 사전예매가 있는 행사에만 예매 알림 안내 */}
-                    {event.ticketLink && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-primary font-semibold mt-0.5">•</span>
-                        <span>예매 오픈 1시간 전</span>
-                      </div>
-                    )}
                   </div>
 
                   <Button

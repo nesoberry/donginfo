@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { getDb } from "./db";
-import { eq, and, gte, lte, ne, isNotNull } from "drizzle-orm";
+import { eq, and, gte, lte, ne } from "drizzle-orm";
 import { events, subscriptions, notifications, users, pushSubscriptions } from "../drizzle/schema";
 import nodemailer from "nodemailer";
 import webpush from "web-push";
@@ -49,21 +49,10 @@ export async function runTicketOpenNotification(): Promise<{ success: boolean; m
   const now = new Date();
 
   // 🎯 타이밍 1: 예매 오픈 1시간 전
-  const oneHourBeforeStart = new Date(now.getTime() + 55 * 60 * 1000);
-  const oneHourBeforeEnd = new Date(now.getTime() + 65 * 60 * 1000);
-
-  const eventsOneHourBefore = await db
-    .select()
-    .from(events)
-    .where(
-      and(
-        gte(events.ticketOpenDate, oneHourBeforeStart),
-        lte(events.ticketOpenDate, oneHourBeforeEnd),
-        // 사전예매 링크가 있는 행사만: ticketOpenDate가 가짜 기본값인 경우가 있어
-        // 예매 자체를 하지 않는 행사에겐 예매 알림을 보내지 않음
-        isNotNull(events.ticketLink)
-      )
-    );
+  // 비활성화 (2026-10-08): DB의 ticketOpenDate가 가짜 기본값이라
+  // 실제 오픈 시점과 무관하게 알림이 나가 허위 알림이 됨.
+  // 스크래퍼가 실제 예매 오픈일을 수집하게 되면 다시 활성화할 것.
+  const eventsOneHourBefore: typeof events.$inferSelect[] = [];
 
   for (const event of eventsOneHourBefore) {
     const eventSubscriptions = await db

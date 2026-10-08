@@ -68,6 +68,11 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
     try {
       const existing = await db.findEventByNameAndDate(e.name, eventDate);
       if (existing) {
+        // 백필: 기존 행사에 ticketLink가 비어있고 새로 들어온 값이 있으면 채움.
+        // (덮어쓰지 않고 빈 칸만 메움 — 스크래퍼가 링크를 못 가져오는 경우가 많아 수동 백필용)
+        if (!existing.ticketLink && e.ticketLink) {
+          await db.updateEvent(existing.id, { ticketLink: e.ticketLink });
+        }
         skipped++;
         continue;
       }

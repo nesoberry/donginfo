@@ -317,11 +317,10 @@ export default function Home() {
                   </div>
 
                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
-                    {/* 사전예매 링크가 있는 행사에만 예매 오픈 표시 (가짜 날짜 노출 방지) */}
+                    {/* 사전예매 링크가 있는 행사에만 표시 (날짜는 검증된 값이 아니라 표시하지 않음) */}
                     {event.ticketLink && (
                       <div className="text-xs text-muted-foreground mb-2 sm:mb-3">
-                        <span className="font-semibold">예매 오픈:</span>{" "}
-                        {format(new Date(event.ticketOpenDate), "MMM dd, HH:mm", { locale: ko })}
+                        <span className="font-semibold">🎫 사전 예매 중</span>
                       </div>
                     )}
                     <div className="flex gap-2">
