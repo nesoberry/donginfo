@@ -43,7 +43,9 @@ export const appRouter = router({
           description: z.string().optional(),
           eventDate: z.date(),
           location: z.string().min(1),
-          ticketOpenDate: z.date(),
+          // 미정이면 생략 가능 — DB NOT NULL이라 eventDate로 채우지만
+          // ticketLink 없이는 화면에 표시되지 않는 inert 값임
+          ticketOpenDate: z.date().optional(),
           ticketLink: z.string().url().optional(),
           mapLink: z.string().url().optional(),
           region: z.string().optional(),
@@ -51,7 +53,10 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        const event = await db.createEvent({ ...input, createdBy: ctx.user.id });
+        const event = await db.createEvent({
+          ...input,
+          ticketOpenDate: input.ticketOpenDate ?? input.eventDate,
+          createdBy: ctx.user.id });
         if (!event) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create event" });
         return event;
       }),

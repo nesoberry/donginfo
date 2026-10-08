@@ -101,7 +101,7 @@ export default function AdminPanel() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.location || !formData.eventDate || !formData.ticketOpenDate) {
+    if (!formData.name || !formData.location || !formData.eventDate) {
       toast.error("필수 항목을 모두 입력해주세요");
       return;
     }
@@ -111,7 +111,8 @@ export default function AdminPanel() {
       description: formData.description || undefined,
       eventDate: new Date(formData.eventDate),
       location: formData.location,
-      ticketOpenDate: new Date(formData.ticketOpenDate),
+      // 미정이면 보내지 않음 (DB 기존값 유지, 화면에는 "미정"으로 표시됨)
+      ...(formData.ticketOpenDate ? { ticketOpenDate: new Date(formData.ticketOpenDate) } : {}),
       ticketLink: formData.ticketLink || undefined,
       mapLink: formData.mapLink || undefined,
       region: formData.region || undefined,
@@ -240,7 +241,7 @@ export default function AdminPanel() {
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 block">
-                    예매 오픈 일시 *
+                    예매 오픈 일시 (미정이면 비워두기)
                   </label>
                   <Input
                     type="datetime-local"
@@ -248,7 +249,6 @@ export default function AdminPanel() {
                     onChange={(e) =>
                       setFormData({ ...formData, ticketOpenDate: e.target.value })
                     }
-                    required
                   />
                 </div>
 
