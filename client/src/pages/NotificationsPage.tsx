@@ -117,7 +117,12 @@ export default function NotificationsPage() {
                   </div>
                   <div className="flex-shrink-0">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary">
+                      {/* suta: 상태는 색 알약이 아닌 글자로 */}
+                      <span className={`text-xs font-medium ${
+                        notification.status === "sent" ? "text-primary" :
+                        notification.status === "failed" ? "text-destructive" :
+                        "text-muted-foreground"
+                      }`}>
                         {notification.status === "sent" ? "발송됨" : notification.status === "failed" ? "실패" : "대기 중"}
                       </span>
                     </div>
