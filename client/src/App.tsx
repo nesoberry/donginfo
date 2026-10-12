@@ -11,7 +11,6 @@ import NotificationsPage from "./pages/NotificationsPage";
 import CalendarPage from "./pages/CalendarPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CopyrightPage from "./pages/CopyrightPage";
-import NoticesPage from "./pages/NoticesPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -24,7 +23,6 @@ function Router() {
       <Route path={"/notifications"} component={NotificationsPage} />
       <Route path={"/privacy"} component={PrivacyPolicy} />
       <Route path={"/copyright"} component={CopyrightPage} />
-      <Route path={"/notices"} component={NoticesPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -119,15 +119,6 @@ export default function Home() {
 
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             <Button
-              onClick={() => setLocation("/notices" as string)}
-              variant="outline"
-              size="sm"
-              className="px-2 sm:px-3"
-            >
-              공지
-            </Button>
-
-            <Button
               onClick={() => setLocation("/calendar" as string)}
               variant="outline"
               size="sm"
