@@ -2,16 +2,18 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell, X } from "lucide-react";
+import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell, X, Search, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays, startOfDay, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
 import { ko } from "date-fns/locale";
 import { VERIFIED_FREE_EVENT_IDS } from "@/const";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { usePushNotification } from "@/hooks/usePushNotification";
 import { usePageMeta } from "@/hooks/usePageMeta";
+
+type DateFilter = "all" | "weekend" | "month";
 
 export default function Home() {
   usePageMeta({
@@ -23,6 +25,8 @@ export default function Home() {
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCosplayOnly, setShowCosplayOnly] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const { isSupported, isSubscribed, isLoading: pushLoading, subscribe } = usePushNotification();
@@ -31,10 +35,65 @@ export default function Home() {
     search: searchTerm || undefined,
   });
 
+  const today = startOfDay(new Date());
+
+  // D-day 계산
+  const getDDay = (eventDate: Date | string) => {
+    return differenceInCalendarDays(startOfDay(new Date(eventDate)), today);
+  };
+
+  // 임박한 행사 (7일 이내) — 히어로용
+  const imminentEvents = useMemo(() => {
+    return events
+      .filter(e => {
+        const d = getDDay(e.eventDate);
+        return d >= 0 && d <= 7;
+      })
+      .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())
+      .slice(0, 3);
+  }, [events]);
+
+  // 지역 목록
+  const regions = useMemo(() => {
+    const set = new Set<string>();
+    events.forEach(e => {
+      if (e.region) set.add(e.region);
+    });
+    return Array.from(set).sort();
+  }, [events]);
+
+  // 필터링
   const filteredEvents = useMemo(() => {
-    if (!showCosplayOnly) return events;
-    return events.filter(event => event.allowsCosplay !== 'no');
-  }, [events, showCosplayOnly]);
+    let result = events;
+
+    // 코스프레 필터
+    if (showCosplayOnly) {
+      result = result.filter(e => e.allowsCosplay !== 'no');
+    }
+
+    // 지역 필터
+    if (selectedRegion) {
+      result = result.filter(e => e.region === selectedRegion);
+    }
+
+    // 날짜 필터
+    if (dateFilter === "weekend") {
+      const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+      result = result.filter(e => {
+        const d = new Date(e.eventDate);
+        return isWithinInterval(d, { start: today, end: weekEnd });
+      });
+    } else if (dateFilter === "month") {
+      const monthEnd = endOfMonth(today);
+      result = result.filter(e => {
+        const d = new Date(e.eventDate);
+        return isWithinInterval(d, { start: today, end: monthEnd });
+      });
+    }
+
+    // 날짜순 정렬
+    return [...result].sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+  }, [events, showCosplayOnly, selectedRegion, dateFilter, today]);
 
   const handleEventClick = (eventId: number) => {
     setLocation(`/event/${eventId}` as string);
@@ -46,56 +105,50 @@ export default function Home() {
 
   const showBanner = isAuthenticated && isSupported && !isSubscribed && !bannerDismissed;
 
+  const hasActiveFilters = searchTerm || showCosplayOnly || selectedRegion || dateFilter !== "all";
+
   return (
     <div className="min-h-screen bg-background">
       {/* 헤더 */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
+      <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="container px-4 py-3 flex items-center justify-between gap-2">
-
-          {/* 왼쪽: 로고 + 타이틀 */}
           <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
             <LayoutGrid className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
             <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">동인 행사 일정</h1>
           </div>
 
-          {/* 오른쪽: 버튼들 */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-            {/* 공지 버튼 */}
             <Button
               onClick={() => setLocation("/notices" as string)}
               variant="outline"
               size="sm"
-              className="flex items-center gap-1.5 px-2 sm:px-3"
+              className="px-2 sm:px-3"
             >
-              <span className="hidden sm:inline">공지</span>
-              <span className="sm:hidden text-xs">공지</span>
+              공지
             </Button>
 
-            {/* 캘린더 버튼: 모바일은 아이콘만 */}
             <Button
               onClick={() => setLocation("/calendar" as string)}
               variant="outline"
               size="sm"
-              className="flex items-center gap-1.5 px-2 sm:px-3"
+              className="px-2 sm:px-3"
             >
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-4 h-4 sm:mr-1.5" />
               <span className="hidden sm:inline">캘린더</span>
             </Button>
 
-            {/* 알림 버튼: 모바일은 아이콘만 */}
             {isAuthenticated && (
               <Button
                 onClick={() => setLocation("/notifications" as string)}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-1.5 px-2 sm:px-3"
+                className="px-2 sm:px-3"
               >
-                <Bell className="w-4 h-4" />
+                <Bell className="w-4 h-4 sm:mr-1.5" />
                 <span className="hidden sm:inline">알림</span>
               </Button>
             )}
 
-            {/* 관리자 패널: 모바일에서 축약 */}
             {isAuthenticated && user?.role === "admin" && (
               <Button
                 onClick={handleAdminClick}
@@ -107,14 +160,12 @@ export default function Home() {
               </Button>
             )}
 
-            {/* 사용자 이름: 모바일에서 숨김 */}
             {isAuthenticated && (
               <span className="hidden sm:block text-sm text-muted-foreground">
                 {user?.name || "사용자"}
               </span>
             )}
 
-            {/* 로그인/로그아웃 */}
             {isAuthenticated ? (
               <Button
                 variant="outline"
@@ -128,7 +179,6 @@ export default function Home() {
               </Button>
             ) : (
               <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-                {/* 모바일: 아이콘만 표시 */}
                 <div className="sm:hidden">
                   <GoogleLogin
                     onSuccess={async (credentialResponse) => {
@@ -140,15 +190,9 @@ export default function Home() {
                           credentials: "include",
                           body: JSON.stringify({ credential: credentialResponse.credential }),
                         });
-                        const data = await res.json();
-                        if (res.ok) {
-                          window.location.reload();
-                        } else {
-                          console.error("백엔드 거절:", data.error);
-                          alert("로그인 처리 중 문제가 발생했습니다.");
-                        }
+                        if (res.ok) window.location.reload();
                       } catch (err) {
-                        console.error("네트워크 통신 에러:", err);
+                        console.error("로그인 에러:", err);
                       }
                     }}
                     onError={() => console.log("구글 로그인 실패")}
@@ -157,7 +201,6 @@ export default function Home() {
                     size="medium"
                   />
                 </div>
-                {/* 데스크탑: 전체 버튼 표시 */}
                 <div className="hidden sm:block">
                   <GoogleLogin
                     onSuccess={async (credentialResponse) => {
@@ -169,15 +212,9 @@ export default function Home() {
                           credentials: "include",
                           body: JSON.stringify({ credential: credentialResponse.credential }),
                         });
-                        const data = await res.json();
-                        if (res.ok) {
-                          window.location.reload();
-                        } else {
-                          console.error("백엔드 거절:", data.error);
-                          alert("로그인 처리 중 문제가 발생했습니다.");
-                        }
+                        if (res.ok) window.location.reload();
                       } catch (err) {
-                        console.error("네트워크 통신 에러:", err);
+                        console.error("로그인 에러:", err);
                       }
                     }}
                     onError={() => console.log("구글 로그인 실패")}
@@ -190,12 +227,10 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 메인 콘텐츠 */}
-      <main className="container px-4 py-8 sm:py-12">
-
-        {/* 푸시 알림 배너 — suta: 테두리+그림자 동시 사용 금지 */}
+      <main className="container px-4">
+        {/* 푸시 알림 배너 */}
         {showBanner && (
-          <div className="mb-6 flex items-center justify-between gap-3 rounded-lg bg-card px-4 py-3">
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-card px-4 py-3">
             <div className="flex items-center gap-3 min-w-0">
               <Bell className="w-5 h-5 text-primary flex-shrink-0" />
               <div className="min-w-0">
@@ -214,7 +249,7 @@ export default function Home() {
               </Button>
               <button
                 onClick={() => setBannerDismissed(true)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground"
                 aria-label="닫기"
               >
                 <X className="w-4 h-4" />
@@ -223,173 +258,257 @@ export default function Home() {
           </div>
         )}
 
-        {/* 검색 및 필터 섹션 */}
-        <div className="mb-8 sm:mb-12">
-          <div className="mb-4 sm:mb-6">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-1 sm:mb-2">
-              행사를 찾아보세요
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              서울코믹월드, 일러스타페스 등 주요 동인 행사의 일정을 한눈에 확인하세요
-            </p>
-          </div>
+        {/* 히어로: 임박한 행사 */}
+        {!isLoading && imminentEvents.length > 0 && !hasActiveFilters && (
+          <section className="py-8 sm:py-12">
+            <div className="flex items-baseline justify-between mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+                곧 열리는 행사
+              </h2>
+              <span className="text-sm text-muted-foreground">7일 이내</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {imminentEvents.map(event => {
+                const dday = getDDay(event.eventDate);
+                return (
+                  <article
+                    key={event.id}
+                    onClick={() => handleEventClick(event.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleEventClick(event.id);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="link"
+                    aria-label={`${event.name} 상세 보기`}
+                    className="group cursor-pointer rounded-xl bg-primary p-5 sm:p-6 text-primary-foreground"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
+                        {dday === 0 ? "오늘" : dday === 1 ? "내일" : `D-${dday}`}
+                      </span>
+                      <ChevronRight className="w-5 h-5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 leading-tight">
+                      {event.name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm opacity-90">
+                      <Calendar className="w-4 h-4 flex-shrink-0" />
+                      <span>{format(new Date(event.eventDate), "M월 d일 (EEEE)", { locale: ko })}</span>
+                    </div>
+                    {event.location && (
+                      <div className="flex items-center gap-2 text-sm opacity-90 mt-1">
+                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{event.location}</span>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-          <div className="flex flex-col gap-3 sm:gap-4">
+        {/* 검색 및 필터 */}
+        <section className="py-6 sm:py-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
+            모든 행사
+          </h2>
+
+          {/* 검색 */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="행사명, 장소명으로 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:max-w-md"
+              className="pl-10 w-full sm:max-w-md"
             />
-            <Button
-              variant={showCosplayOnly ? "default" : "outline"}
-              onClick={() => setShowCosplayOnly(!showCosplayOnly)}
-              className="w-full sm:w-fit"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              {showCosplayOnly ? "코스프레 가능 행사만" : "코스프레 가능 행사 보기"}
-            </Button>
           </div>
-        </div>
+
+          {/* 날짜 필터 */}
+          <div className="flex gap-2 mb-4">
+            {([
+              { key: "all", label: "전체" },
+              { key: "weekend", label: "이번 주말" },
+              { key: "month", label: "이번 달" },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setDateFilter(key)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  dateFilter === key
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* 지역 필터 */}
+          {regions.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              <button
+                onClick={() => setSelectedRegion(null)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  selectedRegion === null
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                전국
+              </button>
+              {regions.map(region => (
+                <button
+                  key={region}
+                  onClick={() => setSelectedRegion(selectedRegion === region ? null : region)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    selectedRegion === region
+                      ? "bg-foreground text-background"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {region}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* 코스프레 필터 */}
+          <button
+            onClick={() => setShowCosplayOnly(!showCosplayOnly)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              showCosplayOnly
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            코스프레 가능만
+          </button>
+        </section>
 
         {/* 행사 목록 */}
-        <div>
+        <section className="pb-12">
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <Spinner className="w-8 h-8 text-primary" />
             </div>
           ) : filteredEvents.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">
-                {searchTerm || showCosplayOnly ? "검색 결과가 없습니다" : "등록된 행사가 없습니다"}
+              <p className="text-muted-foreground">
+                {hasActiveFilters ? "조건에 맞는 행사가 없습니다" : "등록된 행사가 없습니다"}
               </p>
+              {hasActiveFilters && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setShowCosplayOnly(false);
+                    setSelectedRegion(null);
+                    setDateFilter("all");
+                  }}
+                  className="mt-3 text-sm text-primary hover:underline"
+                >
+                  필터 초기화
+                </button>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:gap-6 max-w-6xl mx-auto">
-              {filteredEvents.map(event => (
-                /* suta: div onClick 금지 → 시맨틱 요소 사용. 카드 테두리·그림자 대신 바탕 톤으로 구분 */
-                <article
-                  key={event.id}
-                  className="event-card cursor-pointer group"
-                  onClick={() => handleEventClick(event.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleEventClick(event.id);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="link"
-                  aria-label={`${event.name} 상세 보기`}
-                >
-                  <div className="event-card-header">
-                    <h3 className="event-card-title group-hover:text-primary text-base sm:text-lg">
-                      {event.name}
-                    </h3>
-                    {/* suta: 색 배지 대신 글자·아이콘으로. 지역은 텍스트로, 코스프레는 아이콘+텍스트로 */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 sm:mt-2 text-xs sm:text-sm text-muted-foreground">
-                      {event.region && (
-                        <span>{event.region}</span>
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 max-w-6xl mx-auto">
+              {filteredEvents.map(event => {
+                const dday = getDDay(event.eventDate);
+                const isImminent = dday >= 0 && dday <= 7;
+                const isPast = dday < 0;
+
+                return (
+                  <article
+                    key={event.id}
+                    onClick={() => handleEventClick(event.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleEventClick(event.id);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="link"
+                    aria-label={`${event.name} 상세 보기`}
+                    className={`group cursor-pointer rounded-xl p-4 sm:p-5 flex gap-4 sm:gap-5 transition-colors ${
+                      isImminent && !isPast
+                        ? "bg-primary/5 hover:bg-primary/10"
+                        : "bg-card hover:bg-muted"
+                    } ${isPast ? "opacity-60" : ""}`}
+                  >
+                    {/* 날짜 블록 — suta: 핵심 정보는 크게 */}
+                    <div className="flex-shrink-0 w-14 sm:w-16 text-center">
+                      <div className={`text-2xl sm:text-3xl font-bold leading-none ${isImminent && !isPast ? "text-primary" : "text-foreground"}`}>
+                        {format(new Date(event.eventDate), "d")}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(event.eventDate), "M월 EEE", { locale: ko })}
+                      </div>
+                      {!isPast && dday <= 30 && (
+                        <div className={`text-xs font-semibold mt-1 ${isImminent ? "text-primary" : "text-muted-foreground"}`}>
+                          {dday === 0 ? "오늘" : `D-${dday}`}
+                        </div>
                       )}
-                      {event.allowsCosplay === 'yes' && (
-                        <span className="inline-flex items-center gap-1 text-primary font-medium">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          코스프레 가능
-                        </span>
-                      )}
-                      {event.allowsCosplay === 'limited' && (
+                    </div>
+
+                    {/* 구분선 */}
+                    <div className="w-px bg-border flex-shrink-0" />
+
+                    {/* 행사 정보 */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground text-base sm:text-lg leading-tight mb-1 group-hover:text-primary transition-colors">
+                        {event.name}
+                      </h3>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs sm:text-sm text-muted-foreground mb-2">
+                        {event.region && <span>{event.region}</span>}
                         <span className="inline-flex items-center gap-1">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          코스프레 제한적 허용
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{event.location || "장소 미정"}</span>
                         </span>
-                      )}
-                    </div>
-                  </div>
+                        {event.allowsCosplay === 'yes' && (
+                          <span className="inline-flex items-center gap-1 text-primary font-medium">
+                            <Sparkles className="w-3 h-3" />
+                            코스프레 가능
+                          </span>
+                        )}
+                      </div>
 
-                  {event.description && (
-                    <p className="text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
-                      {event.description}
-                    </p>
-                  )}
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Ticket className="w-3.5 h-3.5" />
+                        {event.ticketLink ? (
+                          <span className="font-medium text-foreground">사전 예매 중</span>
+                        ) : VERIFIED_FREE_EVENT_IDS.includes(event.id) ? (
+                          <span className="font-medium text-foreground">무료 입장</span>
+                        ) : (
+                          <span>티켓 정보 미정</span>
+                        )}
+                      </div>
+                    </div>
 
-                  <div className="event-card-meta text-xs sm:text-sm">
-                    <div className="event-card-meta-item">
-                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span>
-                        {format(new Date(event.eventDate), "MMM dd, yyyy", { locale: ko })}
-                      </span>
-                    </div>
-                    <div className="event-card-meta-item">
-                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span>{event.location}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
-                    {/* 티켓 상태는 항상 명시 (모르면 "미정" — 침묵이 곧 "없음"으로 읽히는 것을 방지) */}
-                    {/* suta: 이모지 아이콘 대신 lucide 아이콘 */}
-                    <div className="text-xs text-muted-foreground mb-2 sm:mb-3 inline-flex items-center gap-1.5">
-                      <Ticket className="w-3.5 h-3.5" />
-                      {event.ticketLink ? (
-                        <span className="font-semibold text-foreground">사전 예매 중</span>
-                      ) : VERIFIED_FREE_EVENT_IDS.includes(event.id) ? (
-                        <span className="font-semibold text-foreground">무료 입장</span>
-                      ) : (
-                        <span>티켓 정보 미정</span>
-                      )}
-                    </div>
-                    {/* suta: 주 행동은 채운 버튼 하나. 보조는 글자 버튼 */}
-                    <div className="flex items-center gap-3">
-                      {event.ticketLink && (
-                        <Button
-                          size="sm"
-                          className="bg-primary text-primary-foreground hover:bg-primary/90"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (event.ticketLink) window.open(event.ticketLink, "_blank");
-                          }}
-                        >
-                          <Ticket className="w-4 h-4 mr-1" />
-                          예매하기
-                        </Button>
-                      )}
-                      {event.mapLink && (
-                        <button
-                          className="text-sm text-primary hover:underline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (event.mapLink) window.open(event.mapLink, "_blank");
-                          }}
-                        >
-                          행사안내
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
+                    <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 self-center group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                  </article>
+                );
+              })}
             </div>
           )}
-        </div>
+        </section>
       </main>
 
       {/* 푸터 */}
-      <footer className="border-t border-border bg-card mt-8">
-        <div className="container px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>© 2026 동인 행사 알리미. All rights reserved.</span>
+      <footer className="border-t border-border mt-8">
+        <div className="container px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>© 2026 동인 행사 알리미</span>
           <div className="flex gap-4">
-            <a
-              href="/privacy"
-              className="hover:text-foreground transition-colors"
-            >
-              개인정보처리방침
-            </a>
-            <a
-              href="/copyright"
-              className="hover:text-foreground transition-colors"
-            >
-              저작권 및 면책사항
-            </a>
+            <a href="/privacy" className="hover:text-foreground">개인정보처리방침</a>
+            <a href="/copyright" className="hover:text-foreground">저작권 및 면책사항</a>
           </div>
         </div>
       </footer>
