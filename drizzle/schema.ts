@@ -28,7 +28,7 @@ export const events = mysqlTable("events", {
   description: text("description"),
   eventDate: timestamp("eventDate").notNull(),
   location: varchar("location", { length: 255 }).notNull(),
-  ticketOpenDate: timestamp("ticketOpenDate").notNull(),
+  ticketOpenDate: timestamp("ticketOpenDate"),
   ticketLink: varchar("ticketLink", { length: 512 }),
   mapLink: varchar("mapLink", { length: 512 }),
   region: varchar("region", { length: 100 }),

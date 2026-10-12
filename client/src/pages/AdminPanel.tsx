@@ -88,7 +88,9 @@ export default function AdminPanel() {
       description: event.description || "",
       eventDate: format(new Date(event.eventDate), "yyyy-MM-dd'T'HH:mm"),
       location: event.location,
-      ticketOpenDate: format(new Date(event.ticketOpenDate), "yyyy-MM-dd'T'HH:mm"),
+      ticketOpenDate: event.ticketOpenDate
+        ? format(new Date(event.ticketOpenDate), "yyyy-MM-dd'T'HH:mm")
+        : "",
       ticketLink: event.ticketLink || "",
       mapLink: event.mapLink || "",
       region: event.region || "",
@@ -112,8 +114,8 @@ export default function AdminPanel() {
       description: formData.description || null,
       eventDate: new Date(formData.eventDate),
       location: formData.location,
-      // 예매 오픈 일시: 비워두면 행사일로 리셋 (DB NOT NULL이라 null 불가, ticketLink 없으면 화면에 표시 안 되는 inert 값)
-      ticketOpenDate: formData.ticketOpenDate ? new Date(formData.ticketOpenDate) : new Date(formData.eventDate),
+      // 예매 오픈 일시: 비워두면 null (미정). 가짜 날짜를 채우지 않음.
+      ticketOpenDate: formData.ticketOpenDate ? new Date(formData.ticketOpenDate) : null,
       ticketLink: formData.ticketLink || null,
       mapLink: formData.mapLink || null,
       region: formData.region || null,
@@ -242,7 +244,7 @@ export default function AdminPanel() {
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 block">
-                    예매 오픈 일시 (미정이면 비워두기 — 행사일로 자동 설정됨)
+                    예매 오픈 일시 (미정이면 비워두기)
                   </label>
                   <Input
                     type="datetime-local"
@@ -388,9 +390,11 @@ export default function AdminPanel() {
                         </div>
                         <div>
                           <span className="font-semibold">예매 오픈:</span>{" "}
-                          {format(new Date(event.ticketOpenDate), "MMM dd, HH:mm", {
-                            locale: ko,
-                          })}
+                          {event.ticketOpenDate
+                            ? format(new Date(event.ticketOpenDate), "MMM dd, HH:mm", {
+                                locale: ko,
+                              })
+                            : "미정"}
                         </div>
                       </div>
                     </div>

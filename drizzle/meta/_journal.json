@@ -29,6 +29,13 @@
       "when": 1781105809321,
       "tag": "0003_easy_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1791777017530,
+      "tag": "0004_ticket-open-date-nullable",
+      "breakpoints": true
     }
   ]
 }

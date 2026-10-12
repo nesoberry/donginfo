@@ -81,7 +81,8 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
         description: e.description ?? null,
         eventDate,
         location: e.location?.trim() || "장소 미정",
-        ticketOpenDate: e.ticketOpenDate ? toSecondPrecision(e.ticketOpenDate) : eventDate,
+        // ticketOpenDate를 모르면 null (미정). 가짜로 행사일을 채우지 않음.
+        ticketOpenDate: e.ticketOpenDate ? toSecondPrecision(e.ticketOpenDate) : null,
         ticketLink: e.ticketLink || null,
         mapLink: e.mapLink || null,
         region: e.region ?? null,
