@@ -112,8 +112,8 @@ export default function AdminPanel() {
       description: formData.description || null,
       eventDate: new Date(formData.eventDate),
       location: formData.location,
-      // 미정이면 보내지 않음 (DB 기존값 유지, 화면에는 "미정"으로 표시됨)
-      ...(formData.ticketOpenDate ? { ticketOpenDate: new Date(formData.ticketOpenDate) } : {}),
+      // 예매 오픈 일시: 비워두면 행사일로 리셋 (DB NOT NULL이라 null 불가, ticketLink 없으면 화면에 표시 안 되는 inert 값)
+      ticketOpenDate: formData.ticketOpenDate ? new Date(formData.ticketOpenDate) : new Date(formData.eventDate),
       ticketLink: formData.ticketLink || null,
       mapLink: formData.mapLink || null,
       region: formData.region || null,
@@ -242,7 +242,7 @@ export default function AdminPanel() {
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 block">
-                    예매 오픈 일시 (미정이면 비워두기)
+                    예매 오픈 일시 (미정이면 비워두기 — 행사일로 자동 설정됨)
                   </label>
                   <Input
                     type="datetime-local"
