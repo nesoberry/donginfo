@@ -108,14 +108,15 @@ export default function AdminPanel() {
 
     const payload = {
       name: formData.name,
-      description: formData.description || undefined,
+      // 비운 필드는 null로 보내서 DB에서도 지워지도록 (undefined는 drizzle이 무시함)
+      description: formData.description || null,
       eventDate: new Date(formData.eventDate),
       location: formData.location,
       // 미정이면 보내지 않음 (DB 기존값 유지, 화면에는 "미정"으로 표시됨)
       ...(formData.ticketOpenDate ? { ticketOpenDate: new Date(formData.ticketOpenDate) } : {}),
-      ticketLink: formData.ticketLink || undefined,
-      mapLink: formData.mapLink || undefined,
-      region: formData.region || undefined,
+      ticketLink: formData.ticketLink || null,
+      mapLink: formData.mapLink || null,
+      region: formData.region || null,
       allowsCosplay: formData.allowsCosplay,
     };
 

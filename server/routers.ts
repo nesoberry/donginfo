@@ -40,15 +40,15 @@ export const appRouter = router({
       .input(
         z.object({
           name: z.string().min(1),
-          description: z.string().optional(),
+          description: z.string().nullable().optional(),
           eventDate: z.date(),
           location: z.string().min(1),
           // 미정이면 생략 가능 — DB NOT NULL이라 eventDate로 채우지만
           // ticketLink 없이는 화면에 표시되지 않는 inert 값임
           ticketOpenDate: z.date().optional(),
-          ticketLink: z.string().url().optional(),
-          mapLink: z.string().url().optional(),
-          region: z.string().optional(),
+          ticketLink: z.string().url().nullable().optional(),
+          mapLink: z.string().url().nullable().optional(),
+          region: z.string().nullable().optional(),
           allowsCosplay: z.enum(["yes", "no", "limited"]).default("no").optional(),
         })
       )
@@ -66,13 +66,13 @@ export const appRouter = router({
         z.object({
           id: z.number(),
           name: z.string().min(1).optional(),
-          description: z.string().optional(),
+          description: z.string().nullable().optional(),
           eventDate: z.date().optional(),
           location: z.string().min(1).optional(),
           ticketOpenDate: z.date().optional(),
-          ticketLink: z.string().url().optional(),
-          mapLink: z.string().url().optional(),
-          region: z.string().optional(),
+          ticketLink: z.string().url().nullable().optional(),
+          mapLink: z.string().url().nullable().optional(),
+          region: z.string().nullable().optional(),
           allowsCosplay: z.enum(["yes", "no", "limited"]).optional(),
         })
       )
