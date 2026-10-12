@@ -1,8 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -195,9 +193,9 @@ export default function Home() {
       {/* 메인 콘텐츠 */}
       <main className="container px-4 py-8 sm:py-12">
 
-        {/* 푸시 알림 배너 */}
+        {/* 푸시 알림 배너 — suta: 테두리+그림자 동시 사용 금지 */}
         {showBanner && (
-          <div className="mb-6 flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-lg bg-card px-4 py-3">
             <div className="flex items-center gap-3 min-w-0">
               <Bell className="w-5 h-5 text-primary flex-shrink-0" />
               <div className="min-w-0">
@@ -269,31 +267,41 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:gap-6 max-w-6xl mx-auto">
               {filteredEvents.map(event => (
-                <Card
+                /* suta: div onClick 금지 → 시맨틱 요소 사용. 카드 테두리·그림자 대신 바탕 톤으로 구분 */
+                <article
                   key={event.id}
                   className="event-card cursor-pointer group"
                   onClick={() => handleEventClick(event.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleEventClick(event.id);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="link"
+                  aria-label={`${event.name} 상세 보기`}
                 >
                   <div className="event-card-header">
-                    <h3 className="event-card-title group-hover:text-primary transition-colors text-base sm:text-lg">
+                    <h3 className="event-card-title group-hover:text-primary text-base sm:text-lg">
                       {event.name}
                     </h3>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
+                    {/* suta: 색 배지 대신 글자·아이콘으로. 지역은 텍스트로, 코스프레는 아이콘+텍스트로 */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 sm:mt-2 text-xs sm:text-sm text-muted-foreground">
                       {event.region && (
-                        <Badge variant="secondary" className="text-xs">
-                          {event.region}
-                        </Badge>
+                        <span>{event.region}</span>
                       )}
                       {event.allowsCosplay === 'yes' && (
-                        <Badge className="text-xs bg-primary text-primary-foreground">
-                          <Sparkles className="w-3 h-3 mr-1" />
+                        <span className="inline-flex items-center gap-1 text-primary font-medium">
+                          <Sparkles className="w-3.5 h-3.5" />
                           코스프레 가능
-                        </Badge>
+                        </span>
                       )}
                       {event.allowsCosplay === 'limited' && (
-                        <Badge variant="outline" className="text-xs">
-                          코스프레 제한
-                        </Badge>
+                        <span className="inline-flex items-center gap-1">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          코스프레 제한적 허용
+                        </span>
                       )}
                     </div>
                   </div>
@@ -319,20 +327,23 @@ export default function Home() {
 
                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
                     {/* 티켓 상태는 항상 명시 (모르면 "미정" — 침묵이 곧 "없음"으로 읽히는 것을 방지) */}
-                    <div className="text-xs text-muted-foreground mb-2 sm:mb-3">
+                    {/* suta: 이모지 아이콘 대신 lucide 아이콘 */}
+                    <div className="text-xs text-muted-foreground mb-2 sm:mb-3 inline-flex items-center gap-1.5">
+                      <Ticket className="w-3.5 h-3.5" />
                       {event.ticketLink ? (
-                        <span className="font-semibold">🎫 사전 예매 중</span>
+                        <span className="font-semibold text-foreground">사전 예매 중</span>
                       ) : VERIFIED_FREE_EVENT_IDS.includes(event.id) ? (
-                        <span className="font-semibold">🎫 무료 입장</span>
+                        <span className="font-semibold text-foreground">무료 입장</span>
                       ) : (
-                        <span>🎫 티켓 정보 미정</span>
+                        <span>티켓 정보 미정</span>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    {/* suta: 주 행동은 채운 버튼 하나. 보조는 글자 버튼 */}
+                    <div className="flex items-center gap-3">
                       {event.ticketLink && (
                         <Button
                           size="sm"
-                          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (event.ticketLink) window.open(event.ticketLink, "_blank");
@@ -343,21 +354,19 @@ export default function Home() {
                         </Button>
                       )}
                       {event.mapLink && (
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          variant="outline"
+                        <button
+                          className="text-sm text-primary hover:underline"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (event.mapLink) window.open(event.mapLink, "_blank");
                           }}
                         >
                           행사안내
-                        </Button>
+                        </button>
                       )}
                     </div>
                   </div>
-                </Card>
+                </article>
               ))}
             </div>
           )}

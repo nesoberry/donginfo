@@ -65,7 +65,7 @@ export default function NotificationsPage() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Bell className="w-8 h-8 text-purple-600" />
+            <Bell className="w-8 h-8 text-primary" />
             <h1 className="text-3xl font-bold text-gray-900">알림</h1>
           </div>
           <p className="text-gray-600">
@@ -93,8 +93,8 @@ export default function NotificationsPage() {
               >
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-100">
-                      <Bell className="w-6 h-6 text-purple-600" />
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/15">
+                      <Bell className="w-6 h-6 text-primary" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -117,7 +117,7 @@ export default function NotificationsPage() {
                   </div>
                   <div className="flex-shrink-0">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary">
                         {notification.status === "sent" ? "발송됨" : notification.status === "failed" ? "실패" : "대기 중"}
                       </span>
                     </div>

@@ -1,7 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Calendar, MapPin, Ticket, ArrowLeft, Bell, BellOff } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -178,17 +176,17 @@ function EventDetailInner() {
       {/* 메인 콘텐츠 */}
       <main className="container px-4 py-6 sm:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* 왼쪽: 행사 정보 */}
+          {/* 왼쪽: 행사 정보 — suta: 카드는 독립 단위에 한 겹만. 테두리·그림자 없이 바탕 톤으로 */}
           <div className="lg:col-span-2">
-            <Card className="event-card p-4 sm:p-8">
-              {/* 제목 및 배지 */}
+            <div className="event-card p-4 sm:p-8">
+              {/* 제목 및 상태 — suta: 상태는 색 알약이 아닌 글자로 */}
               <div className="mb-4 sm:mb-6">
                 <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-3 sm:mb-4">
                   {event.name}
                 </h1>
-                <div className="flex flex-wrap gap-2">
-                  {event.region && <Badge>{event.region}</Badge>}
-                  <Badge className="badge-accent">진행 예정</Badge>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  {event.region && <span>{event.region}</span>}
+                  <span className="text-primary font-medium">진행 예정</span>
                 </div>
               </div>
 
@@ -251,15 +249,12 @@ function EventDetailInner() {
               {/* 구분선 */}
               <div className="section-divider" />
 
-              {/* 링크 섹션 */}
-              <div className="space-y-4">
-                {event.ticketLink && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                      예매처
-                    </h3>
+              {/* 링크 섹션 — suta: 주 행동은 채운 버튼 하나, 보조는 글자 버튼 */}
+              {(event.ticketLink || event.mapLink) && (
+                <div className="flex items-center gap-4">
+                  {event.ticketLink && (
                     <Button
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
                       onClick={() => {
                         if (event.ticketLink) window.open(event.ticketLink, "_blank");
                       }}
@@ -267,32 +262,26 @@ function EventDetailInner() {
                       <Ticket className="w-4 h-4 mr-2" />
                       예매하러 가기
                     </Button>
-                  </div>
-                )}
+                  )}
 
-                {event.mapLink && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                      행사안내
-                    </h3>
-                    <Button
-                      variant="outline"
-                      className="w-full"
+                  {event.mapLink && (
+                    <button
+                      className="text-sm text-primary hover:underline"
                       onClick={() => {
                         if (event.mapLink) window.open(event.mapLink, "_blank");
                       }}
                     >
                       행사안내 보기
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </Card>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 오른쪽: 알림 구독 */}
           <div>
-            <Card className="event-card p-4 sm:p-6 sticky top-20">
+            <div className="event-card p-4 sm:p-6 sticky top-20">
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 {event.ticketLink ? "예매 알림 받기" : "행사 알림 받기"}
               </h3>
@@ -347,7 +336,7 @@ function EventDetailInner() {
                   </div>
                 </div>
               )}
-            </Card>
+            </div>
           </div>
         </div>
       </main>
