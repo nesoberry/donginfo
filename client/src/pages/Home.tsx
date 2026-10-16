@@ -383,6 +383,18 @@ export default function Home() {
           </button>
         </section>
 
+        {/* 코스프레 패키지 진입 배너 — 한 줄, 행사 정보를 가리지 않는 얇은 크기 */}
+        <div className="pb-4">
+          <a
+            href="/package?utm_source=home_banner"
+            className="flex items-center justify-center gap-1.5 py-3 text-sm text-foreground"
+          >
+            <span className="font-semibold">코스프레, 몸만 오세요</span>
+            <span className="text-muted-foreground">— 풀패키지 사전 신청 중</span>
+            <ChevronRight className="w-4 h-4 text-primary" aria-hidden="true" />
+          </a>
+        </div>
+
         {/* 행사 목록 */}
         <section className="pb-12">
           {isLoading ? (
@@ -500,6 +512,7 @@ export default function Home() {
           <div className="flex gap-4">
             <a href="/privacy" className="hover:text-foreground">개인정보처리방침</a>
             <a href="/copyright" className="hover:text-foreground">저작권 및 면책사항</a>
+            <a href="/package?utm_source=footer" className="hover:text-foreground">코스프레 패키지</a>
           </div>
         </div>
       </footer>
