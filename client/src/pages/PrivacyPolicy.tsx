@@ -23,11 +23,11 @@ export default function PrivacyPolicy() {
           <p className="text-muted-foreground text-sm mb-6">
             동인 행사 알리미(이하 "서비스")는 「개인정보 보호법」 등 관련 법령을 준수하며,
             이용자의 개인정보를 보호하기 위해 다음과 같은 개인정보처리방침을 두고 있습니다.
-            <br />본 방침은 2026년 6월 5일부터 적용됩니다.
+            <br />본 방침은 2026년 10월 16일부터 적용됩니다.
           </p>
 
           <Section title="1. 수집하는 개인정보 항목">
-            <p className="mb-2">서비스는 회원 식별 및 알림 제공을 위해 아래와 같은 개인정보를 수집합니다.</p>
+            <p className="mb-2">서비스는 회원 식별, 알림 제공, 코스프레 패키지 사전 신청 접수를 위해 아래와 같은 개인정보를 수집합니다.</p>
             <p className="font-medium mb-1">가. 구글(Google) 계정 로그인 시 수집 항목</p>
             <ul className="list-disc list-inside mb-3 text-sm text-muted-foreground space-y-1">
               <li>이메일 주소</li>
@@ -39,6 +39,11 @@ export default function PrivacyPolicy() {
               <li>알림 설정(알림 수신 방식, 수신 여부 등)</li>
               <li>구독한 행사 정보</li>
               <li>서비스 이용 기록, 접속 일시</li>
+            </ul>
+            <p className="font-medium mb-1">다. 코스프레 패키지 사전 신청 시 수집 항목</p>
+            <ul className="list-disc list-inside mb-3 text-sm text-muted-foreground space-y-1">
+              <li>필수: 연락처(이메일 또는 휴대폰 번호), 관심 항목</li>
+              <li>선택: 하고 싶은 캐릭터·작품, 희망 시기, 예산대</li>
             </ul>
             <p className="text-sm text-muted-foreground">
               서비스는 사상·신념, 정치적 견해, 건강, 성생활 등에 관한 민감정보는 수집하지 않습니다.
@@ -52,6 +57,7 @@ export default function PrivacyPolicy() {
               <li>이용자가 구독한 동인 행사의 예매 오픈·일정 관련 알림 발송</li>
               <li>서비스 운영, 문의 응대 및 개선</li>
               <li>부정 이용 방지 및 서비스 보안 유지</li>
+              <li>코스프레 패키지 사전 신청 접수, 정식 오픈 안내 및 상담 연락</li>
             </ul>
           </Section>
 
@@ -60,6 +66,7 @@ export default function PrivacyPolicy() {
               <li>서비스는 원칙적으로 이용자가 회원 탈퇴를 요청하거나 수집·이용 목적이 달성된 경우 지체 없이 해당 정보를 파기합니다.</li>
               <li>단, 관련 법령에 따라 보존할 필요가 있는 경우 해당 법령에서 정한 기간 동안 보관합니다.</li>
               <li>장기간(예: 1년 이상) 서비스를 이용하지 않은 이용자의 정보는 별도 보관하거나 파기할 수 있습니다.</li>
+              <li>사전 신청 정보: 정식 오픈 안내 후 6개월까지 보관 후 파기합니다. 이용자가 삭제를 요청하면 지체 없이 파기합니다.</li>
             </ul>
           </Section>
 
@@ -179,8 +186,8 @@ export default function PrivacyPolicy() {
               변경 시 서비스 내 공지를 통해 안내합니다.
             </p>
             <ul className="list-none text-sm text-muted-foreground space-y-1">
-              <li><span className="font-medium text-foreground">공고일자:</span> 2026년 6월 5일</li>
-              <li><span className="font-medium text-foreground">시행일자:</span> 2026년 6월 5일</li>
+              <li><span className="font-medium text-foreground">공고일자:</span> 2026년 10월 16일</li>
+              <li><span className="font-medium text-foreground">시행일자:</span> 2026년 10월 16일</li>
             </ul>
           </Section>
 
