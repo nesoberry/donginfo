@@ -29,11 +29,11 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 // 풀패키지 국내 상품 없음 → 부품 대표 구간 합산 (25만~47만원, 시장 실측가 아님을 고지)
 
 const INTERESTS = [
-  { id: "full", label: "풀패키지", desc: "의상·가발·메이크업·스튜디오·사진사 전부" },
-  { id: "studio", label: "스튜디오", desc: "촬영 장소만 찾기" },
-  { id: "photographer", label: "사진사", desc: "찍어줄 사람 찾기" },
-  { id: "costume", label: "의상·가발", desc: "대여·구매만" },
-  { id: "makeup", label: "메이크업", desc: "메이크업만 전문가에게" },
+  { id: "full", label: "풀패키지" },
+  { id: "studio", label: "스튜디오" },
+  { id: "photographer", label: "사진사" },
+  { id: "costume", label: "의상·가발" },
+  { id: "makeup", label: "메이크업" },
 ] as const;
 
 const STEPS = [
@@ -90,7 +90,7 @@ const PARTIALS = [
     icon: Scissors,
     name: "가발",
     desc: "가발 준비·세팅이 어려운 분",
-    price: "1만~3만원부터",
+    price: "1만~3만원",
   },
   {
     icon: Sparkles,
@@ -519,10 +519,7 @@ export default function PackagePage() {
                           onCheckedChange={() => toggleInterest(item.id)}
                           className="mt-1"
                         />
-                        <span>
-                          <span className="text-base text-foreground block">{item.label}</span>
-                          <span className="text-sm text-muted-foreground block">{item.desc}</span>
-                        </span>
+                        <span className="text-base text-foreground">{item.label}</span>
                       </label>
                     ))}
                   </div>
