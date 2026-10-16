@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, like, desc, asc, or } from "drizzle-orm";
+import { eq, and, gte, lte, like, desc, asc, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import {
@@ -406,5 +406,31 @@ export async function listPackageApplications(): Promise<PackageApplication[]> {
   } catch (error) {
     console.error("[Database] Failed to list package applications:", error);
     return [];
+  }
+}
+
+// 운영 DB에 마이그레이션(0005)을 적용할 직접 접속 경로가 없어서,
+// 서버 기동 시 테이블 존재를 보장한다. 0005 SQL과 동일 정의이며
+// IF NOT EXISTS라 이미 있으면 아무 일도 하지 않는다(멱등).
+export async function ensurePackageApplicationsTable(): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot ensure package_applications table: database not available");
+    return;
+  }
+  try {
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS \`package_applications\` (
+      \`id\` int AUTO_INCREMENT NOT NULL,
+      \`contact\` varchar(320) NOT NULL,
+      \`interests\` text NOT NULL,
+      \`character\` varchar(255),
+      \`timing\` varchar(255),
+      \`budget\` varchar(100),
+      \`createdAt\` timestamp NOT NULL DEFAULT (now()),
+      CONSTRAINT \`package_applications_id\` PRIMARY KEY(\`id\`)
+    )`);
+    console.log("[Database] package_applications table ready");
+  } catch (error) {
+    console.error("[Database] Failed to ensure package_applications table:", error);
   }
 }
