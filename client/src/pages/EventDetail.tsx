@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, ArrowLeft, Bell, BellOff } from "lucide-react";
+import { Calendar, MapPin, Ticket, ArrowLeft, Bell, BellOff, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
@@ -275,6 +275,20 @@ function EventDetailInner() {
                     </button>
                   )}
                 </div>
+              )}
+
+              {/* 코스프레 패키지 진입 링크 — 코스프레 가능/부분 가능(allowsCosplay "yes"/"limited") 행사에 노출 */}
+              {(event.allowsCosplay === "yes" || event.allowsCosplay === "limited") && (
+                <>
+                  <div className="section-divider" />
+                  <a
+                    href="/package?utm_source=event_detail"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                  >
+                    코스프레가 처음이라면? 몸만 오세요
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                  </a>
+                </>
               )}
             </div>
           </div>
