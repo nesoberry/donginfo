@@ -4,7 +4,8 @@ import mysql from "mysql2/promise";
 import {
   InsertUser, users, events, subscriptions, notifications, pushSubscriptions,
   Event, InsertEvent, Subscription, InsertSubscription, Notification, InsertNotification,
-  PushSubscription, InsertPushSubscription,
+  PushSubscription, InsertPushSubscription, packageApplications,
+  PackageApplication, InsertPackageApplication,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -371,5 +372,39 @@ export async function deletePushSubscription(endpoint: string): Promise<void> {
     await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
   } catch (error) {
     console.error("[Database] Failed to delete push subscription:", error);
+  }
+}
+
+// ============ Package Application Queries ============
+
+export async function createPackageApplication(
+  data: InsertPackageApplication
+): Promise<PackageApplication | null> {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const result = await db.insert(packageApplications).values(data);
+    const applicationId = result[0]?.insertId;
+    if (!applicationId) return null;
+    const created = await db
+      .select()
+      .from(packageApplications)
+      .where(eq(packageApplications.id, applicationId as number))
+      .limit(1);
+    return created[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to create package application:", error);
+    throw error;
+  }
+}
+
+export async function listPackageApplications(): Promise<PackageApplication[]> {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    return db.select().from(packageApplications).orderBy(desc(packageApplications.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to list package applications:", error);
+    return [];
   }
 }

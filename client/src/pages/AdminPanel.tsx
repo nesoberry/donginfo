@@ -11,9 +11,34 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { toast } from "sonner";
 
+const INTEREST_LABELS: Record<string, string> = {
+  full: "풀패키지",
+  studio: "스튜디오",
+  photographer: "사진사",
+  costume: "의상·가발",
+  makeup: "메이크업",
+};
+
+const BUDGET_LABELS: Record<string, string> = {
+  under30: "30만원 이하",
+  "30-50": "30만~50만원",
+  "50-70": "50만~70만원",
+  over70: "70만원 이상",
+};
+
+function parseInterests(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function AdminPanel() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [tab, setTab] = useState<"events" | "applications">("events");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -30,6 +55,13 @@ export default function AdminPanel() {
 
   // 행사 목록 조회
   const { data: events = [], isLoading, refetch } = trpc.events.list.useQuery({});
+
+  // 사전 신청 목록 조회 (수요 검증 랜딩 /package)
+  const {
+    data: applications = [],
+    isLoading: isLoadingApplications,
+    refetch: refetchApplications,
+  } = trpc.packageApplications.list.useQuery(undefined, { enabled: tab === "applications" });
 
   // 행사 생성
   const createEvent = trpc.events.create.useMutation({
@@ -178,6 +210,37 @@ export default function AdminPanel() {
 
       {/* 메인 콘텐츠 */}
       <main className="container py-12">
+        {/* 탭 */}
+        <div className="flex gap-6 mb-10 border-b border-border">
+          <button
+            type="button"
+            onClick={() => setTab("events")}
+            className={`pb-3 text-base font-semibold ${
+              tab === "events"
+                ? "text-primary border-b-2 border-primary -mb-px"
+                : "text-muted-foreground"
+            }`}
+          >
+            행사 관리
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTab("applications");
+              refetchApplications();
+            }}
+            className={`pb-3 text-base font-semibold ${
+              tab === "applications"
+                ? "text-primary border-b-2 border-primary -mb-px"
+                : "text-muted-foreground"
+            }`}
+          >
+            사전 신청 목록 ({applications.length})
+          </button>
+        </div>
+
+        {tab === "events" && (
+          <>
         {/* 행사 등록 폼 */}
         {showForm && (
           <Card className="event-card p-8 mb-8">
@@ -426,6 +489,58 @@ export default function AdminPanel() {
             </div>
           )}
         </div>
+          </>
+        )}
+
+        {/* 사전 신청 목록 */}
+        {tab === "applications" && (
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground mb-6">
+              사전 신청 목록 ({applications.length})
+            </h2>
+            {isLoadingApplications ? (
+              <div className="flex justify-center items-center py-12">
+                <Spinner className="w-8 h-8 text-primary" />
+              </div>
+            ) : applications.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">신청 내역이 없습니다</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {applications.map((app) => {
+                  const interests = parseInterests(app.interests);
+                  return (
+                    <Card key={app.id} className="event-card p-6">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-base font-semibold text-foreground">
+                            {app.contact}
+                          </span>
+                          <span className="text-sm text-muted-foreground tabular-nums">
+                            {format(new Date(app.createdAt), "yyyy-MM-dd HH:mm", { locale: ko })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground">
+                          {interests
+                            .map((i) => INTEREST_LABELS[i] ?? i)
+                            .join(" · ") || "관심 항목 없음"}
+                        </p>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          {app.character && <p>캐릭터·작품: {app.character}</p>}
+                          {app.timing && <p>희망 시기: {app.timing}</p>}
+                          {app.budget && (
+                            <p>예산대: {BUDGET_LABELS[app.budget] ?? app.budget}</p>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

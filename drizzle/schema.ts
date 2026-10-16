@@ -88,5 +88,20 @@ export const pushSubscriptions = mysqlTable("push_subscriptions", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export type PushSubscription = typeof pushSubscriptions.$inferSelect;
-export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+/**
+ * Package applications - 코스프레 풀패키지/부분 서비스 수요 검증 사전 신청
+ * 로그인 없이 제출 가능. contact=이메일 또는 휴대폰.
+ * interests=관심 항목(JSON 배열: full/studio/photographer/costume/wig/makeup)
+ */
+export const packageApplications = mysqlTable("package_applications", {
+  id: int("id").autoincrement().primaryKey(),
+  contact: varchar("contact", { length: 320 }).notNull(),
+  interests: text("interests").notNull(),
+  character: varchar("character", { length: 255 }),
+  timing: varchar("timing", { length: 255 }),
+  budget: varchar("budget", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PackageApplication = typeof packageApplications.$inferSelect;
+export type InsertPackageApplication = typeof packageApplications.$inferInsert;

@@ -149,9 +149,40 @@ export const appRouter = router({
       .query(async ({ input, ctx }) => db.getUserNotifications(ctx.user.id, input.limit)),
   }),
 
+  // ============ Package Applications Router (수요 검증 사전 신청) ============
+  packageApplications: router({
+    /** 사전 신청 제출 (로그인 불필요) */
+    create: publicProcedure
+      .input(
+        z.object({
+          contact: z.string().min(3).max(320),
+          interests: z
+            .array(z.enum(["full", "studio", "photographer", "costume", "wig", "makeup"]))
+            .min(1),
+          character: z.string().max(255).nullable().optional(),
+          timing: z.string().max(255).nullable().optional(),
+          budget: z.string().max(100).nullable().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const application = await db.createPackageApplication({
+          contact: input.contact.trim(),
+          interests: JSON.stringify(input.interests),
+          character: input.character?.trim() || null,
+          timing: input.timing?.trim() || null,
+          budget: input.budget || null,
+        });
+        if (!application)
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to save application" });
+        return { success: true };
+      }),
+
+    /** 사전 신청 목록 조회 (관리자) */
+    list: adminProcedure.query(async () => db.listPackageApplications()),
+  }),
+
   // ============ Push Notifications Router ============
-  push: router({
-    /** VAPID 공개키 반환 (클라이언트가 구독 요청 시 필요) */
+  push: router({    /** VAPID 공개키 반환 (클라이언트가 구독 요청 시 필요) */
     getPublicKey: publicProcedure.query(() => ({
       publicKey: process.env.VAPID_PUBLIC_KEY ?? "",
     })),
