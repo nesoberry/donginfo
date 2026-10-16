@@ -277,15 +277,15 @@ function EventDetailInner() {
                 </div>
               )}
 
-              {/* 코스프레 패키지 진입 링크 — 코스프레 가능(allowsCosplay === "yes") 행사에만 노출 */}
-              {event.allowsCosplay === "yes" && (
+              {/* 코스프레 패키지 진입 링크 — 코스프레 가능/부분 가능(allowsCosplay "yes"/"limited") 행사에 노출 */}
+              {(event.allowsCosplay === "yes" || event.allowsCosplay === "limited") && (
                 <>
                   <div className="section-divider" />
                   <a
                     href="/package?utm_source=event_detail"
                     className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                   >
-                    이 행사에서 코스프레하고 싶다면
+                    코스프레가 처음이라면? 몸만 오세요
                     <ChevronRight className="w-4 h-4" aria-hidden="true" />
                   </a>
                 </>
