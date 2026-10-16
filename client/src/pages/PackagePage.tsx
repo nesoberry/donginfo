@@ -227,6 +227,7 @@ export default function PackagePage() {
       character: character.trim() || null,
       timing: timing.trim() || null,
       budget: budget || null,
+      consent: true,
     });
   };
 
@@ -597,7 +598,7 @@ export default function PackagePage() {
                     <li>동의를 거부할 수 있으며, 거부하면 사전 신청을 할 수 없습니다.</li>
                     <li>
                       자세한 내용은{" "}
-                      <a href="/privacy" className="text-primary underline">
+                      <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline">
                         개인정보처리방침
                       </a>
                       을 확인해 주세요.
@@ -606,7 +607,14 @@ export default function PackagePage() {
                   <label className="flex items-start gap-3 py-2 cursor-pointer min-h-[44px]">
                     <Checkbox
                       checked={consent}
-                      onCheckedChange={() => setConsent((v) => !v)}
+                      onCheckedChange={(v) => {
+                        const checked = v === true;
+                        setConsent(checked);
+                        if (checked)
+                          setErrorMsg((m) =>
+                            m === "개인정보 수집·이용에 동의해주세요." ? "" : m
+                          );
+                      }}
                       className="mt-1"
                     />
                     <span className="text-base text-foreground">위 내용에 동의합니다.</span>

@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
           </p>
 
           <Section title="1. 수집하는 개인정보 항목">
-            <p className="mb-2">서비스는 회원 식별 및 알림 제공을 위해 아래와 같은 개인정보를 수집합니다.</p>
+            <p className="mb-2">서비스는 회원 식별, 알림 제공, 코스프레 패키지 사전 신청 접수를 위해 아래와 같은 개인정보를 수집합니다.</p>
             <p className="font-medium mb-1">가. 구글(Google) 계정 로그인 시 수집 항목</p>
             <ul className="list-disc list-inside mb-3 text-sm text-muted-foreground space-y-1">
               <li>이메일 주소</li>
