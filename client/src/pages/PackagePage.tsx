@@ -163,6 +163,7 @@ export default function PackagePage() {
   const [budget, setBudget] = useState("");
   const [succeeded, setSucceeded] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [consent, setConsent] = useState(false);
 
   // 모바일 스티키 CTA: 폼이 화면에 없을 때만 표시
   useEffect(() => {
@@ -215,6 +216,10 @@ export default function PackagePage() {
       setErrorMsg("관심 있는 항목을 하나 이상 선택해주세요.");
       return;
     }
+    if (!consent) {
+      setErrorMsg("개인정보 수집·이용에 동의해주세요.");
+      return;
+    }
 
     apply.mutate({
       contact: trimmed,
@@ -222,6 +227,7 @@ export default function PackagePage() {
       character: character.trim() || null,
       timing: timing.trim() || null,
       budget: budget || null,
+      consent: true,
     });
   };
 
@@ -581,10 +587,39 @@ export default function PackagePage() {
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  입력하신 연락처는 사전 신청 안내를 위해서만 사용되며,
-                  다른 용도로는 사용하지 않습니다.
-                </p>
+                <div className="border border-border rounded-md p-4">
+                  <p className="text-sm font-semibold text-foreground mb-2">
+                    [필수] 개인정보 수집·이용 동의
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground leading-relaxed space-y-1 mb-2">
+                    <li>수집 목적: 사전 신청 접수, 정식 오픈 안내, 상담 연락</li>
+                    <li>수집 항목: 연락처(이메일 또는 휴대폰 번호), 관심 항목, 하고 싶은 캐릭터·작품, 희망 시기, 예산대</li>
+                    <li>보유 기간: 정식 오픈 안내 후 6개월까지. 그 전에 삭제를 요청하면 바로 삭제합니다.</li>
+                    <li>동의를 거부할 수 있으며, 거부하면 사전 신청을 할 수 없습니다.</li>
+                    <li>
+                      자세한 내용은{" "}
+                      <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                        개인정보처리방침
+                      </a>
+                      을 확인해 주세요.
+                    </li>
+                  </ul>
+                  <label className="flex items-start gap-3 py-2 cursor-pointer min-h-[44px]">
+                    <Checkbox
+                      checked={consent}
+                      onCheckedChange={(v) => {
+                        const checked = v === true;
+                        setConsent(checked);
+                        if (checked)
+                          setErrorMsg((m) =>
+                            m === "개인정보 수집·이용에 동의해주세요." ? "" : m
+                          );
+                      }}
+                      className="mt-1"
+                    />
+                    <span className="text-base text-foreground">위 내용에 동의합니다.</span>
+                  </label>
+                </div>
 
                 {errorMsg && (
                   <p role="alert" className="flex items-start gap-2 text-sm text-destructive">

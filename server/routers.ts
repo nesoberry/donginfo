@@ -162,6 +162,7 @@ export const appRouter = router({
           character: z.string().max(255).nullable().optional(),
           timing: z.string().max(255).nullable().optional(),
           budget: z.string().max(100).nullable().optional(),
+          consent: z.literal(true),
         })
       )
       .mutation(async ({ input }) => {
