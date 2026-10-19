@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
           <p className="text-muted-foreground text-sm mb-6">
             동인 행사 알리미(이하 "서비스")는 「개인정보 보호법」 등 관련 법령을 준수하며,
             이용자의 개인정보를 보호하기 위해 다음과 같은 개인정보처리방침을 두고 있습니다.
-            <br />본 방침은 2026년 10월 16일부터 적용됩니다.
+            <br />본 방침은 2026년 10월 19일부터 적용됩니다.
           </p>
 
           <Section title="1. 수집하는 개인정보 항목">
@@ -186,8 +186,8 @@ export default function PrivacyPolicy() {
               변경 시 서비스 내 공지를 통해 안내합니다.
             </p>
             <ul className="list-none text-sm text-muted-foreground space-y-1">
-              <li><span className="font-medium text-foreground">공고일자:</span> 2026년 10월 16일</li>
-              <li><span className="font-medium text-foreground">시행일자:</span> 2026년 10월 16일</li>
+              <li><span className="font-medium text-foreground">공고일자:</span> 2026년 10월 19일</li>
+              <li><span className="font-medium text-foreground">시행일자:</span> 2026년 10월 19일</li>
             </ul>
           </Section>
 
