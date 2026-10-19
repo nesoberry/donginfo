@@ -32,6 +32,7 @@ export const sitemapRouter = Router();
 sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
   const urls: SitemapUrl[] = [
     { loc: `${SITE_URL}/`, changefreq: "daily", priority: "1.0" },
+    { loc: `${SITE_URL}/package`, changefreq: "daily", priority: "0.9" },
     { loc: `${SITE_URL}/calendar`, changefreq: "daily", priority: "0.8" },
   ];
 
