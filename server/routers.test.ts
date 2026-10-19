@@ -1,6 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+
+// DB 계층 전체를 mock으로 교체 — DATABASE_URL이 있어도 실제 DB에 절대 닿지 않는다.
+// (라우터가 호출하는 db.createPackageApplication만 가짜로 두고, 나머지는 원본 유지)
+vi.mock("./db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./db")>();
+  return { ...actual, createPackageApplication: vi.fn() };
+});
+import * as db from "./db";
 
 function createMockContext(overrides?: Partial<TrpcContext>): TrpcContext {
   return {
@@ -132,42 +140,37 @@ describe("packageApplications.create consent enforcement", () => {
     contact: "consent-test@example.com",
     interests: ["full"] as const,
   };
+  const mockCreate = vi.mocked(db.createPackageApplication);
+
+  beforeEach(() => {
+    mockCreate.mockReset();
+  });
 
   it("should reject when consent is missing", async () => {
     const caller = appRouter.createCaller(createMockContext({ user: null }));
-    try {
-      await caller.packageApplications.create(validInput as any);
-      expect.unreachable();
-    } catch (e: any) {
-      // 입력 검증 단계에서 거부되어야 함 (DB 단계에 도달하면 안 됨)
-      expect(e.code).toBe("BAD_REQUEST");
-    }
+    await expect(
+      caller.packageApplications.create(validInput as any)
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    // 입력 검증 단계에서 거부되므로 DB 함수는 호출되지 않아야 함
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it("should reject when consent is false", async () => {
     const caller = appRouter.createCaller(createMockContext({ user: null }));
-    try {
-      await caller.packageApplications.create({
-        ...validInput,
-        consent: false,
-      } as any);
-      expect.unreachable();
-    } catch (e: any) {
-      expect(e.code).toBe("BAD_REQUEST");
-    }
+    await expect(
+      caller.packageApplications.create({ ...validInput, consent: false } as any)
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it("should pass input validation when consent is true", async () => {
+  it("should save the application when consent is true (DB mocked)", async () => {
+    mockCreate.mockResolvedValue({ id: 1 } as any);
     const caller = appRouter.createCaller(createMockContext({ user: null }));
-    try {
-      await caller.packageApplications.create({
-        ...validInput,
-        consent: true,
-      });
-      expect.unreachable();
-    } catch (e: any) {
-      // DB가 없는 테스트 환경에서는 검증 통과 후 저장 단계에서 INTERNAL_SERVER_ERROR 발생
-      expect(e.code).toBe("INTERNAL_SERVER_ERROR");
-    }
+    const result = await caller.packageApplications.create({
+      ...validInput,
+      consent: true,
+    });
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ success: true });
   });
 });
