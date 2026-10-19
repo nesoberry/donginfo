@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
-// DB 계층 전체를 mock으로 교체 — DATABASE_URL이 있어도 실제 DB에 절대 닿지 않는다.
-// (라우터가 호출하는 db.createPackageApplication만 가짜로 두고, 나머지는 원본 유지)
+// createPackageApplication만 vi.mock으로 교체한다. 나머지 DB 함수는 원본이며,
+// 테스트는 vitest.config의 env 고정(DATABASE_URL="") 덕분에 실제 DB에 닿지 않는다.
 vi.mock("./db", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./db")>();
   return { ...actual, createPackageApplication: vi.fn() };
