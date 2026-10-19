@@ -126,3 +126,48 @@ describe("App Router", () => {
     }
   });
 });
+
+describe("packageApplications.create consent enforcement", () => {
+  const validInput = {
+    contact: "consent-test@example.com",
+    interests: ["full"] as const,
+  };
+
+  it("should reject when consent is missing", async () => {
+    const caller = appRouter.createCaller(createMockContext({ user: null }));
+    try {
+      await caller.packageApplications.create(validInput as any);
+      expect.unreachable();
+    } catch (e: any) {
+      // 입력 검증 단계에서 거부되어야 함 (DB 단계에 도달하면 안 됨)
+      expect(e.code).toBe("BAD_REQUEST");
+    }
+  });
+
+  it("should reject when consent is false", async () => {
+    const caller = appRouter.createCaller(createMockContext({ user: null }));
+    try {
+      await caller.packageApplications.create({
+        ...validInput,
+        consent: false,
+      } as any);
+      expect.unreachable();
+    } catch (e: any) {
+      expect(e.code).toBe("BAD_REQUEST");
+    }
+  });
+
+  it("should pass input validation when consent is true", async () => {
+    const caller = appRouter.createCaller(createMockContext({ user: null }));
+    try {
+      await caller.packageApplications.create({
+        ...validInput,
+        consent: true,
+      });
+      expect.unreachable();
+    } catch (e: any) {
+      // DB가 없는 테스트 환경에서는 검증 통과 후 저장 단계에서 INTERNAL_SERVER_ERROR 발생
+      expect(e.code).toBe("INTERNAL_SERVER_ERROR");
+    }
+  });
+});
