@@ -105,3 +105,21 @@ export const packageApplications = mysqlTable("package_applications", {
 
 export type PackageApplication = typeof packageApplications.$inferSelect;
 export type InsertPackageApplication = typeof packageApplications.$inferInsert;
+
+/**
+ * Deleted events (tombstones) - 관리자가 지운 행사의 재등록 방지용.
+ * 수집 중복 판정이 (행사명, 날짜) 일치라서, 관리자가 지운 행사를 수집기가
+ * 다음 날 다시 넣는 일이 있었다 (2026-10-28, 90024 -> 90043).
+ * 관리자 삭제 시 이 테이블에 (행사명, KST 날짜)를 남기고, 수집 시
+ * tombstone에 있는 행사는 새로 만들지 않고 건너뛴다.
+ * eventDay는 KST 기준 YYYY-MM-DD 문자열 (수집 판정의 날짜 단위와 동일).
+ */
+export const deletedEvents = mysqlTable("deleted_events", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  eventDay: varchar("eventDay", { length: 10 }).notNull(),
+  deletedAt: timestamp("deletedAt").defaultNow().notNull(),
+});
+
+export type DeletedEvent = typeof deletedEvents.$inferSelect;
+export type InsertDeletedEvent = typeof deletedEvents.$inferInsert;

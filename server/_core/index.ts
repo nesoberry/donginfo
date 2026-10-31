@@ -14,7 +14,7 @@ import {
   runProcessNotifications,
 } from "../scheduled";
 import { authRouter } from './authRouter';
-import { ensurePackageApplicationsTable } from "../db";
+import { ensurePackageApplicationsTable, ensureDeletedEventsTable } from "../db";
 import { ingestRouter } from '../ingest';
 import { sitemapRouter } from '../sitemap';
 
@@ -83,6 +83,7 @@ app.use((req, res, next) => {
 
   // 사전 신청 테이블 보장 (0005 마이그레이션 대체 — 실패해도 서버는 기동)
   await ensurePackageApplicationsTable();
+  await ensureDeletedEventsTable();
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);

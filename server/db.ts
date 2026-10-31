@@ -5,8 +5,9 @@ import {
   InsertUser, users, events, subscriptions, notifications, pushSubscriptions,
   Event, InsertEvent, Subscription, InsertSubscription, Notification, InsertNotification,
   PushSubscription, InsertPushSubscription, packageApplications,
-  PackageApplication, InsertPackageApplication,
+  PackageApplication, InsertPackageApplication, deletedEvents,
 } from "../drizzle/schema";
+import { canonicalEventName } from "./eventAliases";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -123,6 +124,8 @@ function toKstDay(d: Date): string {
   return new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
+export { toKstDay };
+
 export async function findEventByNameAndDate(name: string, eventDate: Date): Promise<Event | null> {
   const db = await getDb();
   if (!db) return null;
@@ -196,6 +199,70 @@ export async function deleteEvent(id: number): Promise<boolean> {
   } catch (error) {
     console.error("[Database] Failed to delete event:", error);
     throw error;
+  }
+}
+
+// ============ Deleted Events (tombstones) ============
+
+export async function ensureDeletedEventsTable(): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot ensure deleted_events table: database not available");
+    return;
+  }
+  try {
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS \`deleted_events\` (
+      \`id\` int AUTO_INCREMENT NOT NULL,
+      \`name\` varchar(255) NOT NULL,
+      \`eventDay\` varchar(10) NOT NULL,
+      \`deletedAt\` timestamp NOT NULL DEFAULT (now()),
+      CONSTRAINT \`deleted_events_id\` PRIMARY KEY(\`id\`)
+    )`);
+    console.log("[Database] deleted_events table ready");
+  } catch (error) {
+    console.error("[Database] Failed to ensure deleted_events table:", error);
+  }
+}
+
+/**
+ * 관리자 삭제 시 tombstone을 남긴다. 삭제 당시 이름과 그 별칭의 정식 명칭
+ * 둘 다 남겨서, 수집 입력이 어느 쪽 이름으로 들어와도(정규화 후) 걸러진다.
+ * 이미 같은 (name, eventDay)가 있으면 중복 삽입하지 않는다.
+ */
+export async function recordDeletedEvent(name: string, eventDate: Date): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const eventDay = toKstDay(eventDate);
+  const names = Array.from(new Set([name.trim(), canonicalEventName(name)]));
+  try {
+    for (const n of names) {
+      const existing = await db
+        .select()
+        .from(deletedEvents)
+        .where(and(eq(deletedEvents.name, n), eq(deletedEvents.eventDay, eventDay)))
+        .limit(1);
+      if (existing.length === 0) {
+        await db.insert(deletedEvents).values({ name: n, eventDay });
+      }
+    }
+  } catch (error) {
+    console.error("[Database] Failed to record deleted event:", error);
+  }
+}
+
+export async function isEventTombstoned(name: string, eventDay: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    const rows = await db
+      .select()
+      .from(deletedEvents)
+      .where(and(eq(deletedEvents.name, name), eq(deletedEvents.eventDay, eventDay)))
+      .limit(1);
+    return rows.length > 0;
+  } catch (error) {
+    console.error("[Database] Failed to check deleted event:", error);
+    return false;
   }
 }
 

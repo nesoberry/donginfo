@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { timingSafeEqual } from "crypto";
 import * as db from "./db";
+import { canonicalEventName } from "./eventAliases";
 
 /**
  * Ingest API — lets the scheduled scraper push collected events into the DB.
@@ -65,8 +66,17 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
 
   for (const e of parsed.data.events) {
     const eventDate = toSecondPrecision(e.eventDate);
+    // 별칭 정규화: 수집 통칭을 정식 명칭으로 바꿔서 중복 판정을 한다.
+    // (예: 'AGF KOREA 2026' -> 'Anime X Game Festival 2026')
+    const canonicalName = canonicalEventName(e.name);
     try {
-      const existing = await db.findEventByNameAndDate(e.name, eventDate);
+      // tombstone: 관리자가 지운 (행사명, KST 날짜)는 다시 만들지 않는다.
+      const eventDay = db.toKstDay(eventDate);
+      if (await db.isEventTombstoned(canonicalName, eventDay)) {
+        skipped++;
+        continue;
+      }
+      const existing = await db.findEventByNameAndDate(canonicalName, eventDate);
       if (existing) {
         // 백필: 기존 행사에 ticketLink가 비어있고 새로 들어온 값이 있으면 채움.
         // (덮어쓰지 않고 빈 칸만 메움 — 스크래퍼가 링크를 못 가져오는 경우가 많아 수동 백필용)
@@ -77,7 +87,7 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
         continue;
       }
       const created = await db.createEvent({
-        name: e.name,
+        name: canonicalName,
         description: e.description ?? null,
         eventDate,
         location: e.location?.trim() || "장소 미정",
