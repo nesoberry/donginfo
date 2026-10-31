@@ -70,12 +70,11 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
     // (예: 'AGF KOREA 2026' -> 'Anime X Game Festival 2026')
     const canonicalName = canonicalEventName(e.name);
     try {
-      // tombstone: 관리자가 지운 (행사명, KST 날짜)는 다시 만들지 않는다.
-      const eventDay = db.toKstDay(eventDate);
-      if (await db.isEventTombstoned(canonicalName, eventDay)) {
-        skipped++;
-        continue;
-      }
+      // 순서 (검수 반영): ① 기존 줄 확인이 먼저다. 기존 줄이 있으면
+      // 빈 ticketLink만 채우고 건너뛴다. 삭제 표시를 먼저 보면, 관리자
+      // 삭제가 정식 명칭으로도 표시를 남기므로(예: 90043 삭제 후
+      // ('Anime X Game Festival 2026', 12-04) 표시) 정식 줄 60011의
+      // 빈칸 채우기가 멈춘다. ② 없을 때만 삭제 표시 확인. ③ 새로 만들기.
       const existing = await db.findEventByNameAndDate(canonicalName, eventDate);
       if (existing) {
         // 백필: 기존 행사에 ticketLink가 비어있고 새로 들어온 값이 있으면 채움.
@@ -83,6 +82,14 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
         if (!existing.ticketLink && e.ticketLink) {
           await db.updateEvent(existing.id, { ticketLink: e.ticketLink });
         }
+        skipped++;
+        continue;
+      }
+      // tombstone: 관리자가 지운 (행사명, KST 날짜)는 다시 만들지 않는다.
+      // 삭제 표시된 행사를 다시 등록하려면 관리자 화면에서 직접 만든다
+      // (관리자 생성은 표시를 보지 않음).
+      const eventDay = db.toKstDay(eventDate);
+      if (await db.isEventTombstoned(canonicalName, eventDay)) {
         skipped++;
         continue;
       }
@@ -113,6 +120,9 @@ ingestRouter.post("/events", checkApiKey, async (req: Request, res: Response) =>
 // DELETE /api/ingest/events — remove a single event by (name, eventDate).
 // Used to clean up bad data from the scraper pipeline (e.g. test entries,
 // mis-parsed events). Same Bearer key auth.
+// 의도적으로 tombstone을 남기지 않는다: 이 삭제는 파이프라인 정리용이라,
+// 스크래퍼를 고친 뒤 같은 행사를 다시 수집할 수 있어야 한다. 관리자 의도로
+// 지워서 다시 안 올라오게 하려면 관리자 화면 삭제(표시 기록)를 쓸 것.
 const deleteBodySchema = z.object({
   name: z.string().min(1),
   eventDate: z.coerce.date(),

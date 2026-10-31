@@ -11,6 +11,7 @@
  * 이 맵은 수집 입력에만 적용한다. 기존 DB 행의 이름을 바꾸지 않으며,
  * 별칭은 사람이 직접 확인한 쌍만 여기에 추가한다. 새 별칭을 추가할 때는
  * 공식 일정(날짜·장소)이 같은 행사인지 먼저 대조할 것.
+ * 별칭에는 연도가 들어 있으므로 연도별로 추가한다 (예: 2027년 AGF는 별도 쌍).
  */
 export const EVENT_NAME_ALIASES: Record<string, string> = {
   "AGF KOREA 2026": "Anime X Game Festival 2026",

@@ -216,7 +216,8 @@ export async function ensureDeletedEventsTable(): Promise<void> {
       \`name\` varchar(255) NOT NULL,
       \`eventDay\` varchar(10) NOT NULL,
       \`deletedAt\` timestamp NOT NULL DEFAULT (now()),
-      CONSTRAINT \`deleted_events_id\` PRIMARY KEY(\`id\`)
+      CONSTRAINT \`deleted_events_id\` PRIMARY KEY(\`id\`),
+      UNIQUE KEY \`deleted_events_name_day\` (\`name\`, \`eventDay\`)
     )`);
     console.log("[Database] deleted_events table ready");
   } catch (error) {
