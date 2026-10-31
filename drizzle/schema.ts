@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -105,3 +105,32 @@ export const packageApplications = mysqlTable("package_applications", {
 
 export type PackageApplication = typeof packageApplications.$inferSelect;
 export type InsertPackageApplication = typeof packageApplications.$inferInsert;
+
+/**
+ * Deleted events (tombstones) - 관리자가 지운 행사의 재등록 방지용.
+ * 수집 중복 판정이 (행사명, 날짜) 일치라서, 관리자가 지운 행사를 수집기가
+ * 다음 날 다시 넣는 일이 있었다 (2026-10-28, 90024 -> 90043).
+ * 관리자 삭제 시 이 테이블에 (행사명, KST 날짜)를 남기고, 수집 시
+ * tombstone에 있는 행사는 새로 만들지 않고 건너뛴다.
+ * eventDay는 KST 기준 YYYY-MM-DD 문자열 (수집 판정의 날짜 단위와 동일).
+ *
+ * 마이그레이션 주의: 이 테이블은 drizzle 마이그레이션으로 만들지 않고
+ * 서버 기동 시 CREATE TABLE IF NOT EXISTS로 보장한다
+ * (package_applications와 같은 패턴, server/db.ts ensureDeletedEventsTable).
+ * 따라서 `pnpm db:push`로 이 테이블의 0006 마이그레이션을 만들지 말 것.
+ * 운영 DB에는 기동 보장이 이미 테이블을 만들어 두므로, IF NOT EXISTS 없는
+ * 0006을 적용하면 실패한다. 마이그레이션으로 옮기려면 반드시 IF NOT EXISTS
+ * 형태여야 한다. 삭제 표시된 행사를 다시 등록하려면 관리자 화면에서 직접
+ * 만들면 된다 (관리자 생성은 표시를 보지 않음).
+ */
+export const deletedEvents = mysqlTable("deleted_events", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  eventDay: varchar("eventDay", { length: 10 }).notNull(),
+  deletedAt: timestamp("deletedAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("deleted_events_name_day").on(t.name, t.eventDay),
+]);
+
+export type DeletedEvent = typeof deletedEvents.$inferSelect;
+export type InsertDeletedEvent = typeof deletedEvents.$inferInsert;

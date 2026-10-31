@@ -82,8 +82,11 @@ export const appRouter = router({
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
+        const event = await db.getEventById(input.id);
         const success = await db.deleteEvent(input.id);
         if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Event not found" });
+        // tombstone: 수집기가 지운 행사를 다음 날 다시 넣지 못하게 한다.
+        if (event) await db.recordDeletedEvent(event.name, new Date(event.eventDate));
         return { success: true };
       }),
   }),
