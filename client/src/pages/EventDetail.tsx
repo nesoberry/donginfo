@@ -60,7 +60,7 @@ function EventDetailInner() {
     ? format(new Date(event.eventDate), "yyyy년 M월 d일", { locale: ko })
     : "";
   usePageMeta({
-    title: event ? `${event.name} | 동인 행사 알리미` : "행사 상세 | 동인 행사 알리미",
+    title: event ? `${event.name} | 코스하레` : "행사 상세 | 코스하레",
     description: event
       ? `${eventDateStr} ${event.location}에서 열리는 ${event.name} 일정·장소·티켓 정보를 확인하세요.`
       : undefined,
@@ -144,7 +144,7 @@ function EventDetailInner() {
         <div className="container py-12">
           <Button
             variant="outline"
-            onClick={() => setLocation("/")}
+            onClick={() => setLocation("/events")}
             className="mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -165,7 +165,7 @@ function EventDetailInner() {
         <div className="container px-4 py-3">
           <Button
             variant="outline"
-            onClick={() => setLocation("/")}
+            onClick={() => setLocation("/events")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             돌아가기
@@ -283,10 +283,18 @@ function EventDetailInner() {
                   <div className="section-divider" />
                   <a
                     href="/package?utm_source=event_detail"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                    className="flex flex-col gap-3 rounded-xl bg-foreground px-5 py-4 text-background sm:flex-row sm:items-center sm:justify-between"
                   >
-                    코스프레가 처음이라면? 몸만 오세요
-                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                    <span className="min-w-0">
+                      <span className="block font-bold">이 행사, 코스프레로 가세요?</span>
+                      <span className="block text-sm text-background/80">
+                        의상·가발·메이크업·촬영 준비는 코스하레에 맡기세요
+                      </span>
+                    </span>
+                    <span className="inline-flex flex-shrink-0 items-center justify-center gap-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+                      사전 신청
+                      <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                    </span>
                   </a>
                 </>
               )}

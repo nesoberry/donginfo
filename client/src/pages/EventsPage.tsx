@@ -2,10 +2,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Calendar, MapPin, Ticket, LayoutGrid, Sparkles, Bell, X, Search, ChevronRight } from "lucide-react";
+import { Calendar, MapPin, Ticket, Sparkles, Bell, X, Search, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { format, differenceInCalendarDays, startOfDay, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
 import { ko } from "date-fns/locale";
 import { VERIFIED_FREE_EVENT_IDS } from "@/const";
@@ -15,9 +15,10 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 
 type DateFilter = "all" | "weekend" | "month";
 
-export default function Home() {
+// 행사 일정 (/events) — 예전 첫 화면(/)의 행사 목록. 첫 화면은 코스하레 랜딩이 됐다.
+export default function EventsPage() {
   usePageMeta({
-    title: "전국 동인행사 일정 한눈에 | 동인 행사 알리미",
+    title: "전국 동인행사 일정 한눈에 | 코스하레",
     description:
       "코믹월드, 일러스타페스, AGF 등 전국 동인·서브컬처 행사 일정을 한눈에. 날짜·장소·티켓 정보와 코스프레 가능 여부까지 확인하세요.",
   });
@@ -112,12 +113,20 @@ export default function Home() {
       {/* 헤더 */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="container px-4 py-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
-            <LayoutGrid className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
-            <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">동인 행사 일정</h1>
+          <div className="flex items-baseline gap-2 flex-shrink-0 min-w-0">
+            <Link href="/" className="text-lg sm:text-xl font-bold text-foreground">
+              코스하레
+            </Link>
+            <h1 className="text-sm sm:text-base font-semibold text-muted-foreground truncate">행사 일정</h1>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            <a
+              href="/?utm_source=events_header#apply"
+              className="hidden sm:inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              사전 신청
+            </a>
             <Button
               onClick={() => setLocation("/calendar" as string)}
               variant="outline"
@@ -219,17 +228,17 @@ export default function Home() {
       </header>
 
       <main className="container px-4">
-        {/* 코스프레 패키지 진입 배너 — 카드형, 첫 화면 */}
+        {/* 코스하레 안내 한 줄 — 행사 정보를 가리지 않는 얇은 크기 */}
         <a
-          href="/package?utm_source=home_banner"
-          className="mt-4 flex flex-col gap-3 rounded-xl bg-primary px-5 py-5 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+          href="/?utm_source=events_banner"
+          className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm hover:border-primary/40"
         >
-          <div className="min-w-0">
-            <p className="text-lg font-bold leading-tight sm:text-xl">코스프레, 몸만 오세요</p>
-            <p className="mt-1 text-sm opacity-90">의상·가발·메이크업·촬영까지 한 번에 · 사전 신청 중</p>
-          </div>
-          <span className="inline-flex w-full flex-shrink-0 items-center justify-center gap-1 rounded-full bg-primary-foreground px-5 py-2.5 text-sm font-semibold text-primary sm:w-auto">
-            사전 신청하기
+          <span className="min-w-0">
+            <span className="font-semibold text-foreground">코스프레 준비는 코스하레에 맡기세요</span>
+            <span className="hidden sm:inline text-muted-foreground"> · 의상·가발·메이크업·촬영까지 한 번에</span>
+          </span>
+          <span className="inline-flex flex-shrink-0 items-center gap-0.5 font-semibold text-primary">
+            알아보기
             <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </span>
         </a>
@@ -289,23 +298,23 @@ export default function Home() {
                     tabIndex={0}
                     role="link"
                     aria-label={`${event.name} 상세 보기`}
-                    className="group cursor-pointer rounded-xl bg-primary p-5 sm:p-6 text-primary-foreground"
+                    className="group cursor-pointer rounded-xl border border-border bg-card p-5 sm:p-6 text-card-foreground hover:border-primary/50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
+                      <span className="text-sm font-bold text-primary">
                         {dday === 0 ? "오늘" : dday === 1 ? "내일" : `D-${dday}`}
                       </span>
-                      <ChevronRight className="w-5 h-5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                     </div>
                     <h3 className="text-lg sm:text-xl font-bold mb-2 leading-tight">
                       {event.name}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm opacity-90">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="w-4 h-4 flex-shrink-0" />
                       <span>{format(new Date(event.eventDate), "M월 d일 (EEEE)", { locale: ko })}</span>
                     </div>
                     {event.location && (
-                      <div className="flex items-center gap-2 text-sm opacity-90 mt-1">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                         <MapPin className="w-4 h-4 flex-shrink-0" />
                         <span className="truncate">{event.location}</span>
                       </div>
@@ -511,11 +520,11 @@ export default function Home() {
       {/* 푸터 */}
       <footer className="border-t border-border mt-8">
         <div className="container px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>© 2026 동인 행사 알리미</span>
+          <span>© 2026 코스하레</span>
           <div className="flex gap-4">
             <a href="/privacy" className="hover:text-foreground">개인정보처리방침</a>
             <a href="/copyright" className="hover:text-foreground">저작권 및 면책사항</a>
-            <a href="/package?utm_source=footer" className="hover:text-foreground">코스프레 패키지</a>
+            <a href="/?utm_source=footer" className="hover:text-foreground">코스프레 패키지</a>
           </div>
         </div>
       </footer>

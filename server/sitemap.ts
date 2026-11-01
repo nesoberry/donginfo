@@ -32,7 +32,8 @@ export const sitemapRouter = Router();
 sitemapRouter.get("/sitemap.xml", async (_req: Request, res: Response) => {
   const urls: SitemapUrl[] = [
     { loc: `${SITE_URL}/`, changefreq: "daily", priority: "1.0" },
-    { loc: `${SITE_URL}/package`, changefreq: "daily", priority: "0.9" },
+    // 첫 화면(/)이 코스하레 랜딩이고 /package는 같은 페이지라 넣지 않는다 (대표 주소 /)
+    { loc: `${SITE_URL}/events`, changefreq: "daily", priority: "0.9" },
     { loc: `${SITE_URL}/calendar`, changefreq: "daily", priority: "0.8" },
   ];
 
