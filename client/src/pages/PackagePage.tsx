@@ -276,7 +276,7 @@ export default function PackagePage() {
       {/* 머리말: 어느 위치에서나 [사전 신청] 버튼이 보인다 */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border">
         <div className="container px-4 py-3 flex items-center justify-between gap-3">
-          <Link href="/" className="text-lg sm:text-xl font-bold text-foreground">
+          <Link href="/" className="font-serif text-lg sm:text-xl font-bold tracking-wide text-foreground">
             코스하레
           </Link>
           <nav className="flex items-center gap-1 sm:gap-2">
@@ -305,13 +305,13 @@ export default function PackagePage() {
 
       <main className="pb-24 md:pb-0">
         {/* 1. 히어로: 첫 화면에서 바로 연락처를 적고 신청을 시작한다 */}
-        <section ref={heroRef} className="bg-primary/[0.04]">
+        <section ref={heroRef} className="bg-secondary/60">
           <div className="container px-4 max-w-6xl mx-auto grid gap-10 md:grid-cols-2 md:items-center py-12 md:py-20">
             <div>
-              <p className="text-sm font-semibold text-primary mb-4">
+              <p className="text-sm font-medium tracking-wider text-gold-foreground mb-4">
                 코스하레 · 사전 신청 접수 중
               </p>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-5 leading-tight">
+              <h1 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-5 leading-snug">
                 코스프레 준비는 맡기고,
                 <br />
                 입고 찍기만 하세요
@@ -349,12 +349,25 @@ export default function PackagePage() {
                 2027년 8월 정식 오픈 목표 · 지금 신청하면 오픈 일정이 정해지는 대로 가장 먼저 안내드려요
               </p>
             </div>
-            <div>
+            {/* 무드 이미지에서 온 장식: 연라일락 리본 띠와 금색 가는 선 (글자 없음) */}
+            <div className="relative">
+              <div
+                aria-hidden
+                className="absolute -inset-3 rounded-[1.75rem] border border-gold/40"
+              />
               <img
                 src="/images/package-hero.webp"
                 alt="코스프레 촬영 현장 일러스트 — 코스어, 사진사, 메이크업 아티스트"
-                className="w-full aspect-square object-cover rounded-2xl"
+                className="relative w-full aspect-square object-cover rounded-2xl"
                 loading="eager"
+              />
+              <div
+                aria-hidden
+                className="absolute -left-4 -right-4 bottom-8 h-3 -rotate-6 rounded-full bg-lilac-soft/80"
+              />
+              <div
+                aria-hidden
+                className="absolute -left-4 -right-4 bottom-5 h-1.5 -rotate-6 rounded-full bg-gold/50"
               />
             </div>
           </div>
@@ -363,7 +376,7 @@ export default function PackagePage() {
         {/* 2. 문제 제기: 혼자 준비하면 vs 맡기면 */}
         <section className="bg-background">
           <div className="container px-4 max-w-5xl mx-auto py-14 md:py-20">
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-8 md:mb-10">
+            <h3 className="font-serif text-xl md:text-2xl font-bold text-foreground mb-8 md:mb-10">
               혼자 준비하면, 할 일이 너무 많습니다
             </h3>
             <div className="grid md:grid-cols-2 gap-6">
@@ -397,7 +410,7 @@ export default function PackagePage() {
         <section className="bg-background">
           <div className="container px-4 max-w-5xl mx-auto py-14 md:py-20">
             {/* 풀패키지 강조 카드 */}
-            <div className="rounded-2xl bg-primary/[0.05] border border-primary/20 p-6 md:p-10 mb-10 md:mb-12">
+            <div className="rounded-2xl bg-card border border-gold/30 p-6 md:p-10 mb-10 md:mb-12">
               <p className="text-base font-semibold text-foreground mb-1">풀패키지</p>
               <p className="text-sm text-muted-foreground mb-6">
                 하나하나 알아볼 필요 없이, 한 번에 해결됩니다.
@@ -420,7 +433,7 @@ export default function PackagePage() {
             </div>
 
             {/* 부분 서비스 */}
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
+            <h3 className="font-serif text-xl md:text-2xl font-bold text-foreground mb-2">
               필요한 것만 골라서
             </h3>
             <p className="text-sm text-muted-foreground mb-8">
@@ -444,7 +457,7 @@ export default function PackagePage() {
         {/* 4. 진행 방식 4단계 */}
         <section className="bg-muted/40">
           <div className="container px-4 max-w-6xl mx-auto py-14 md:py-20">
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-8 md:mb-10">
+            <h3 className="font-serif text-xl md:text-2xl font-bold text-foreground mb-8 md:mb-10">
               이렇게 진행됩니다
             </h3>
             <ol className="flex flex-col lg:flex-row lg:items-stretch gap-6 lg:gap-4">
@@ -453,7 +466,7 @@ export default function PackagePage() {
                   <li className="bg-card rounded-2xl p-6 flex-1 flex gap-4">
                     <div className="flex flex-col items-center gap-2 flex-shrink-0">
                       <step.icon className="w-6 h-6 text-primary" aria-hidden />
-                      <span className="text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                      <span className="text-xs font-medium text-gold-foreground tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                     </div>
                     <div>
                       <p className="text-base font-semibold text-foreground mb-1">{step.title}</p>
@@ -481,7 +494,7 @@ export default function PackagePage() {
         {/* 5. FAQ */}
         <section className="bg-muted/40">
           <div className="container px-4 max-w-3xl mx-auto py-14 md:py-20">
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-8">
+            <h3 className="font-serif text-xl md:text-2xl font-bold text-foreground mb-8">
               자주 묻는 질문
             </h3>
             <div>
@@ -529,9 +542,9 @@ export default function PackagePage() {
         </section>
 
         {/* 6. 사전 신청 폼 */}
-        <section id="apply" ref={formRef} className="bg-primary/[0.04] scroll-mt-20">
+        <section id="apply" ref={formRef} className="bg-secondary/60 scroll-mt-20">
           <div className="container px-4 max-w-3xl mx-auto py-14 md:py-20">
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">사전 신청하기</h3>
+            <h3 className="font-serif text-xl md:text-2xl font-bold text-foreground mb-2">사전 신청하기</h3>
             <p className="text-sm text-muted-foreground mb-8">
               정식 오픈 시 신청 순서대로 우선 안내드립니다.
             </p>
@@ -711,7 +724,7 @@ export default function PackagePage() {
       <footer className="border-t border-border bg-background">
         <div className="container px-4 max-w-5xl mx-auto py-8 flex flex-col gap-4 text-sm text-muted-foreground">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <p className="font-semibold text-foreground">코스하레</p>
+            <p className="font-serif font-bold text-foreground">코스하레</p>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {SNS_LINKS.map((s) => (
                 <a
