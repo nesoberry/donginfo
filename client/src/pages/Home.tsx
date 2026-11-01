@@ -219,6 +219,21 @@ export default function Home() {
       </header>
 
       <main className="container px-4">
+        {/* 코스프레 패키지 진입 배너 — 카드형, 첫 화면 */}
+        <a
+          href="/package?utm_source=home_banner"
+          className="mt-4 flex flex-col gap-3 rounded-xl bg-primary px-5 py-5 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+        >
+          <div className="min-w-0">
+            <p className="text-lg font-bold leading-tight sm:text-xl">코스프레, 몸만 오세요</p>
+            <p className="mt-1 text-sm opacity-90">의상·가발·메이크업·촬영까지 한 번에 · 사전 신청 중</p>
+          </div>
+          <span className="inline-flex w-full flex-shrink-0 items-center justify-center gap-1 rounded-full bg-primary-foreground px-5 py-2.5 text-sm font-semibold text-primary sm:w-auto">
+            사전 신청하기
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          </span>
+        </a>
+
         {/* 푸시 알림 배너 */}
         {showBanner && (
           <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-card px-4 py-3">
@@ -382,18 +397,6 @@ export default function Home() {
             코스프레 가능만
           </button>
         </section>
-
-        {/* 코스프레 패키지 진입 배너 — 한 줄, 행사 정보를 가리지 않는 얇은 크기 */}
-        <div className="pb-4">
-          <a
-            href="/package?utm_source=home_banner"
-            className="flex items-center justify-center gap-1.5 py-3 text-sm text-foreground"
-          >
-            <span className="font-semibold">코스프레, 몸만 오세요</span>
-            <span className="text-muted-foreground">— 풀패키지 사전 신청 중</span>
-            <ChevronRight className="w-4 h-4 text-primary" aria-hidden="true" />
-          </a>
-        </div>
 
         {/* 행사 목록 */}
         <section className="pb-12">
