@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "@/components/ui/spinner";
 import {
-  ArrowLeft,
   ArrowDown,
   ArrowRight,
   ChevronDown,
@@ -24,7 +23,8 @@ import {
 import { trpc } from "@/lib/trpc";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
-// 코스프레 사업 수요 검증 랜딩페이지 (/package)
+// 코스하레 랜딩페이지 — 첫 화면(/)과 /package가 같은 페이지를 보여 준다 (대표 주소는 /)
+// SNS 소개 링크와 행사 상세 링크가 /package를 쓰고 있어서 주소를 남겨 둔다.
 // 가격 범위 근거: goals/5-1000/hidden_files/가격-리서치-2026-10-13.md (2026-10-13 실측)
 // 풀패키지 국내 상품 없음 → 부품 대표 구간 합산 (25만~47만원, 시장 실측가 아님을 고지)
 
@@ -147,17 +147,22 @@ const FAQS = [
   },
 ];
 
+const SNS_LINKS = [
+  { label: "인스타그램 @cosuhare", href: "https://www.instagram.com/cosuhare/" },
+  { label: "X @cosuhare", href: "https://x.com/cosuhare" },
+];
+
 export default function PackagePage() {
-  const [, setLocation] = useLocation();
   const formRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const [showCta, setShowCta] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   usePageMeta({
-    title: "코스프레 풀패키지 사전 신청 | 동인행사 알리미",
+    title: "코스하레 | 코스프레 준비는 맡기고, 입고 찍기만",
     description:
-      "코스프레, 몸만 오세요. 의상·가발·메이크업부터 스튜디오·사진사·보정까지 전부 준비해드립니다. 전부 맡기거나 필요한 것만 골라도 됩니다. 현재 사전 신청 접수 중.",
+      "의상·가발·메이크업부터 스튜디오·사진사·보정까지 한 번에 준비해 드리는 코스프레 풀패키지. 전부 맡기거나 필요한 것만 골라도 됩니다. 2027년 8월 정식 오픈 목표, 지금 사전 신청 접수 중.",
+    canonical: "https://www.donginfo.com/",
   });
 
   const [contact, setContact] = useState("");
@@ -242,6 +247,19 @@ export default function PackagePage() {
     el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   };
 
+  // 다른 페이지의 "사전 신청" 링크(/#apply)로 들어오면 신청 양식으로 바로 내려간다
+  useEffect(() => {
+    if (window.location.hash === "#apply") {
+      formRef.current?.scrollIntoView({ block: "start" });
+    }
+  }, []);
+
+  // 첫 화면 연락처 칸: 같은 연락처 값을 쓰고, 아래 신청 양식으로 이어서 내려간다
+  const handleHeroSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    scrollToForm();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <style>{`
@@ -255,42 +273,81 @@ export default function PackagePage() {
         }
       `}</style>
 
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="container px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setLocation("/")}>
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            홈으로
-          </Button>
-          <h1 className="text-base font-semibold text-foreground">코스프레 풀패키지</h1>
+      {/* 머리말: 어느 위치에서나 [사전 신청] 버튼이 보인다 */}
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border">
+        <div className="container px-4 py-3 flex items-center justify-between gap-3">
+          <Link href="/" className="text-lg sm:text-xl font-bold text-foreground">
+            코스하레
+          </Link>
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <Link
+              href="/events"
+              className="px-2 sm:px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              행사 일정
+            </Link>
+            <Link
+              href="/calendar"
+              className="hidden sm:inline-flex px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              캘린더
+            </Link>
+            <Button
+              size="sm"
+              onClick={scrollToForm}
+              className="ml-1 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              사전 신청
+            </Button>
+          </nav>
         </div>
       </header>
 
       <main className="pb-24 md:pb-0">
-        {/* 1. 히어로 */}
+        {/* 1. 히어로: 첫 화면에서 바로 연락처를 적고 신청을 시작한다 */}
         <section ref={heroRef} className="bg-primary/[0.04]">
-          <div className="container px-4 max-w-6xl mx-auto grid gap-10 md:grid-cols-2 md:items-center py-14 md:py-20">
+          <div className="container px-4 max-w-6xl mx-auto grid gap-10 md:grid-cols-2 md:items-center py-12 md:py-20">
             <div>
-              <p className="text-sm font-semibold text-primary mb-4">사전 신청 접수 중</p>
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-5 leading-tight">
-                몸만 오세요.
+              <p className="text-sm font-semibold text-primary mb-4">
+                코스하레 · 사전 신청 접수 중
+              </p>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-5 leading-tight">
+                코스프레 준비는 맡기고,
                 <br />
-                나머지는 다 준비해드립니다.
-              </h2>
+                입고 찍기만 하세요
+              </h1>
               <p className="text-base text-muted-foreground leading-relaxed mb-6 max-w-xl">
-                코스프레를 처음 해도 괜찮습니다. 의상·가발·메이크업부터
-                스튜디오·사진사·보정까지, 전부 맡겨도 되고 필요한 것만 골라도 됩니다.
+                의상·가발·메이크업부터 스튜디오·사진사·보정까지 한 번에 준비해 드립니다.
+                전부 맡겨도 되고, 필요한 것만 골라도 됩니다.
               </p>
-              <p className="text-2xl font-bold text-primary mb-8 tabular-nums">
-                코스프레 풀패키지 25만원부터
+              <p className="text-2xl font-bold text-foreground mb-6 tabular-nums">
+                풀패키지 예상 25만원부터
               </p>
-              <Button
-                size="lg"
-                onClick={scrollToForm}
-                className="h-12 px-8 text-base bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                사전 신청하기
-                <ArrowDown className="w-4 h-4 ml-2" />
-              </Button>
+              <form onSubmit={handleHeroSubmit} className="flex flex-col sm:flex-row gap-2 max-w-xl">
+                <label htmlFor="hero-contact" className="sr-only">
+                  연락처 (이메일 또는 휴대폰)
+                </label>
+                <Input
+                  id="hero-contact"
+                  type="text"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  placeholder="이메일 또는 휴대폰 번호"
+                  className="h-12 text-base bg-card flex-1"
+                  autoComplete="email"
+                />
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-12 px-6 text-base bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap"
+                >
+                  사전 신청하기
+                  <ArrowDown className="w-4 h-4 ml-2" />
+                </Button>
+              </form>
+              <p className="text-sm text-muted-foreground mt-3">
+                2027년 8월 정식 오픈 목표 · 지금 신청하면 오픈 일정이 정해지는 대로 가장 먼저 안내드려요
+              </p>
             </div>
             <div>
               <img
@@ -307,7 +364,7 @@ export default function PackagePage() {
         <section className="bg-background">
           <div className="container px-4 max-w-5xl mx-auto py-14 md:py-20">
             <h3 className="text-xl md:text-2xl font-bold text-foreground mb-8 md:mb-10">
-              처음이면, 준비가 제일 막막합니다
+              혼자 준비하면, 할 일이 너무 많습니다
             </h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
@@ -336,44 +393,7 @@ export default function PackagePage() {
           </div>
         </section>
 
-        {/* 3. 진행 방식 4단계 */}
-        <section className="bg-muted/40">
-          <div className="container px-4 max-w-6xl mx-auto py-14 md:py-20">
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-8 md:mb-10">
-              이렇게 진행됩니다
-            </h3>
-            <ol className="flex flex-col lg:flex-row lg:items-stretch gap-6 lg:gap-4">
-              {STEPS.map((step, i) => (
-                <div key={step.title} className="contents">
-                  <li className="bg-card rounded-2xl p-6 flex-1 flex gap-4">
-                    <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                      <step.icon className="w-6 h-6 text-primary" aria-hidden />
-                      <span className="text-xs text-muted-foreground tabular-nums">{i + 1}</span>
-                    </div>
-                    <div>
-                      <p className="text-base font-semibold text-foreground mb-1">{step.title}</p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
-                    </div>
-                  </li>
-                  {i < STEPS.length - 1 && (
-                    <>
-                      <ArrowDown
-                        className="w-5 h-5 text-muted-foreground self-center mx-auto lg:hidden"
-                        aria-hidden
-                      />
-                      <ArrowRight
-                        className="w-5 h-5 text-muted-foreground self-center hidden lg:block flex-shrink-0"
-                        aria-hidden
-                      />
-                    </>
-                  )}
-                </div>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* 4. 가격 */}
+        {/* 3. 포함 항목과 예상 가격 */}
         <section className="bg-background">
           <div className="container px-4 max-w-5xl mx-auto py-14 md:py-20">
             {/* 풀패키지 강조 카드 */}
@@ -418,6 +438,43 @@ export default function PackagePage() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        {/* 4. 진행 방식 4단계 */}
+        <section className="bg-muted/40">
+          <div className="container px-4 max-w-6xl mx-auto py-14 md:py-20">
+            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-8 md:mb-10">
+              이렇게 진행됩니다
+            </h3>
+            <ol className="flex flex-col lg:flex-row lg:items-stretch gap-6 lg:gap-4">
+              {STEPS.map((step, i) => (
+                <div key={step.title} className="contents">
+                  <li className="bg-card rounded-2xl p-6 flex-1 flex gap-4">
+                    <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                      <step.icon className="w-6 h-6 text-primary" aria-hidden />
+                      <span className="text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                    </div>
+                    <div>
+                      <p className="text-base font-semibold text-foreground mb-1">{step.title}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                    </div>
+                  </li>
+                  {i < STEPS.length - 1 && (
+                    <>
+                      <ArrowDown
+                        className="w-5 h-5 text-muted-foreground self-center mx-auto lg:hidden"
+                        aria-hidden
+                      />
+                      <ArrowRight
+                        className="w-5 h-5 text-muted-foreground self-center hidden lg:block flex-shrink-0"
+                        aria-hidden
+                      />
+                    </>
+                  )}
+                </div>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -472,7 +529,7 @@ export default function PackagePage() {
         </section>
 
         {/* 6. 사전 신청 폼 */}
-        <section ref={formRef} className="bg-primary/[0.04] scroll-mt-20">
+        <section id="apply" ref={formRef} className="bg-primary/[0.04] scroll-mt-20">
           <div className="container px-4 max-w-3xl mx-auto py-14 md:py-20">
             <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">사전 신청하기</h3>
             <p className="text-sm text-muted-foreground mb-8">
@@ -648,15 +705,42 @@ export default function PackagePage() {
           </div>
         </section>
 
-        {/* 7. 안내 문구 */}
-        <section className="bg-background">
-          <div className="container px-4 max-w-5xl mx-auto py-12">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              현재 사전 신청 접수 중입니다. 정식 오픈 시 신청 순서대로 우선 안내드립니다.
-            </p>
-          </div>
-        </section>
       </main>
+
+      {/* 바닥글 */}
+      <footer className="border-t border-border bg-background">
+        <div className="container px-4 max-w-5xl mx-auto py-8 flex flex-col gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <p className="font-semibold text-foreground">코스하레</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {SNS_LINKS.map((s) => (
+                <a
+                  key={s.href}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground"
+                >
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          </div>
+          <p>
+            문의{" "}
+            <a href="mailto:cosuhare.official@gmail.com" className="hover:text-foreground">
+              cosuhare.official@gmail.com
+            </a>
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <Link href="/events" className="hover:text-foreground">행사 일정</Link>
+            <Link href="/calendar" className="hover:text-foreground">캘린더</Link>
+            <a href="/privacy" className="hover:text-foreground">개인정보처리방침</a>
+            <a href="/copyright" className="hover:text-foreground">저작권 및 면책사항</a>
+          </div>
+          <p className="text-xs">© 2026 코스하레</p>
+        </div>
+      </footer>
 
       {/* 모바일 스티키 하단 CTA */}
       {showCta && (

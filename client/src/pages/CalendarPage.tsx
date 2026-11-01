@@ -8,7 +8,7 @@ import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function CalendarPage() {
   usePageMeta({
-    title: "동인 행사 캘린더 | 동인 행사 알리미",
+    title: "동인 행사 캘린더 | 코스하레",
     description:
       "월별 캘린더로 보는 전국 동인행사 일정. 코믹월드, 일러스타페스, 온리전 등 서브컬처 행사 날짜를 한눈에 확인하세요.",
   });

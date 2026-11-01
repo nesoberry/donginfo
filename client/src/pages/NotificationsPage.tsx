@@ -80,7 +80,7 @@ export default function NotificationsPage() {
             <p className="text-gray-600 mb-6">
               행사를 구독하면 예매 오픈 알림을 받을 수 있습니다.
             </p>
-            <Button variant="default" onClick={() => setLocation("/")}>
+            <Button variant="default" onClick={() => setLocation("/events")}>
               행사 보기
             </Button>
           </Card>

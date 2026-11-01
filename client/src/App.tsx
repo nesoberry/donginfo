@@ -4,7 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import EventsPage from "./pages/EventsPage";
 import EventDetail from "./pages/EventDetail";
 import AdminPanel from "./pages/AdminPanel";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -17,7 +17,8 @@ function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={PackagePage} />
+      <Route path={"/events"} component={EventsPage} />
       <Route path={"/calendar"} component={CalendarPage} />
       <Route path={"/event/:id"} component={EventDetail} />
       <Route path={"/admin"} component={AdminPanel} />
