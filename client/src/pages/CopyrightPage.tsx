@@ -1,9 +1,14 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function CopyrightPage() {
   const [, setLocation] = useLocation();
+  usePageMeta({
+    title: "저작권 및 면책사항 | 코스하레",
+    description: "코스하레 사이트의 행사 정보 책임, 저작권, 게시 중단 요청, 면책 안내입니다.",
+  });
 
   return (
     <div className="min-h-screen bg-background">
