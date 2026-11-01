@@ -27,11 +27,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-gold: var(--gold);
-  --color-gold-foreground: var(--gold-foreground);
-  --color-lilac-soft: var(--lilac-soft);
-  --font-sans: "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --font-serif: "Gowun Batang", "Noto Serif KR", serif;
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -48,78 +43,70 @@
 }
 
 :root {
-  /* 코스하레 브랜드색 (2026-11-02 성준 확정, Claude 작업 폴더 30번 디자인 지침):
-     성준이 고른 무드 이미지(리본·무대·의상·가발)에서 뽑은 색.
-     아이보리 바탕 + 라일락 하나를 강조색으로, 샴페인 금색은 가는 선·작은 글자에만.
-     suta 기준: 강조색 하나 + 오류 빨강. 분홍은 쓰지 않는다(다른 행사 색과 구분). */
-  --primary: #7a65b3;
-  --primary-foreground: #ffffff;
-  --gold: #a88b55;
-  --gold-foreground: #85693a;
-  --lilac-soft: #c9bce3;
-  --sidebar-primary: #6f5ba7;
-  --sidebar-primary-foreground: #ffffff;
-  --chart-1: #7a65b3;
-  --chart-2: #c9bce3;
-  --chart-3: #a88b55;
-  --chart-4: #a7b79a;
-  --chart-5: #6e6876;
+  /* 브랜드색: 주홍(버밀리언) — 동인행사는 축제다. 마츠리 등불의 색으로 "이번 주말 뭐 하지?"의 설렘을 담았다.
+     suta 기준: 강조색 하나 + 오류 빨강. 오류는 차가운 빨강(destructive)으로 구분. */
+  --primary: oklch(0.58 0.19 38);
+  --primary-foreground: oklch(0.99 0.001 0);
+  --sidebar-primary: oklch(0.55 0.18 38);
+  --sidebar-primary-foreground: oklch(0.99 0.001 0);
+  --chart-1: oklch(0.58 0.19 38);
+  --chart-2: oklch(0.65 0.10 38);
+  --chart-3: oklch(0.50 0.08 38);
+  --chart-4: oklch(0.45 0.02 0);
+  --chart-5: oklch(0.55 0.02 0);
   --radius: 0.75rem;
-  --background: #fbf8f2;
-  --foreground: #3a3540;
-  --card: #ffffff;
-  --card-foreground: #3a3540;
-  --popover: #ffffff;
-  --popover-foreground: #3a3540;
-  --secondary: #f1ecf7;
-  --secondary-foreground: #3a3540;
-  --muted: #f3eee6;
-  --muted-foreground: #6e6876;
-  --accent: #f1ecf7;
-  --accent-foreground: #3a3540;
+  --background: oklch(0.99 0.001 0);
+  --foreground: oklch(0.25 0.01 0);
+  --card: oklch(0.98 0.002 0);
+  --card-foreground: oklch(0.25 0.01 0);
+  --popover: oklch(0.98 0.002 0);
+  --popover-foreground: oklch(0.25 0.01 0);
+  --secondary: oklch(0.92 0.008 280);
+  --secondary-foreground: oklch(0.35 0.01 0);
+  --muted: oklch(0.88 0.005 0);
+  --muted-foreground: oklch(0.55 0.01 0);
+  --accent: oklch(0.75 0.12 35);
+  --accent-foreground: oklch(0.98 0.001 0);
   --destructive: oklch(0.60 0.20 30);
   --destructive-foreground: oklch(0.98 0.001 0);
-  --border: #ece6dc;
-  --input: #ece6dc;
-  --ring: #7a65b3;
-  --sidebar: #fbf8f2;
-  --sidebar-foreground: #3a3540;
-  --sidebar-accent: #f1ecf7;
-  --sidebar-accent-foreground: #3a3540;
-  --sidebar-border: #ece6dc;
-  --sidebar-ring: #7a65b3;
+  --border: oklch(0.92 0.003 0);
+  --input: oklch(0.95 0.002 0);
+  --ring: oklch(0.58 0.19 38);
+  --sidebar: oklch(0.99 0.001 0);
+  --sidebar-foreground: oklch(0.25 0.01 0);
+  --sidebar-accent: oklch(0.92 0.008 280);
+  --sidebar-accent-foreground: oklch(0.35 0.01 0);
+  --sidebar-border: oklch(0.92 0.003 0);
+  --sidebar-ring: oklch(0.55 0.15 290);
 }
 
 .dark {
-  --primary: #b3a3dc;
-  --primary-foreground: #221d2b;
-  --gold: #c9a96e;
-  --gold-foreground: #d8bd88;
-  --lilac-soft: #4a3f66;
-  --sidebar-primary: #b3a3dc;
-  --sidebar-primary-foreground: #221d2b;
-  --background: #1d1a22;
-  --foreground: #efeae2;
-  --card: #26222d;
-  --card-foreground: #efeae2;
-  --popover: #26222d;
-  --popover-foreground: #efeae2;
-  --secondary: #2f2a38;
-  --secondary-foreground: #efeae2;
-  --muted: #2f2a38;
-  --muted-foreground: #bdb6c6;
-  --accent: #2f2a38;
-  --accent-foreground: #efeae2;
+  --primary: oklch(0.65 0.16 38);
+  --primary-foreground: oklch(0.15 0.01 0);
+  --sidebar-primary: oklch(0.62 0.15 38);
+  --sidebar-primary-foreground: oklch(0.15 0.01 0);
+  --background: oklch(0.15 0.01 0);
+  --foreground: oklch(0.92 0.005 0);
+  --card: oklch(0.20 0.008 280);
+  --card-foreground: oklch(0.92 0.005 0);
+  --popover: oklch(0.20 0.008 280);
+  --popover-foreground: oklch(0.92 0.005 0);
+  --secondary: oklch(0.25 0.008 280);
+  --secondary-foreground: oklch(0.85 0.005 0);
+  --muted: oklch(0.30 0.006 280);
+  --muted-foreground: oklch(0.75 0.01 0);
+  --accent: oklch(0.75 0.12 35);
+  --accent-foreground: oklch(0.15 0.01 0);
   --destructive: oklch(0.65 0.18 30);
   --destructive-foreground: oklch(0.98 0.001 0);
-  --border: #3a3445;
-  --input: #3a3445;
-  --sidebar: #221e28;
-  --sidebar-foreground: #efeae2;
-  --sidebar-accent: #2f2a38;
-  --sidebar-accent-foreground: #efeae2;
-  --sidebar-border: #3a3445;
-  --sidebar-ring: #b3a3dc;
+  --border: oklch(0.25 0.006 280);
+  --input: oklch(0.22 0.008 280);
+  --sidebar: oklch(0.17 0.008 280);
+  --sidebar-foreground: oklch(0.92 0.005 0);
+  --sidebar-accent: oklch(0.30 0.008 280);
+  --sidebar-accent-foreground: oklch(0.85 0.005 0);
+  --sidebar-border: oklch(0.25 0.006 280);
+  --sidebar-ring: oklch(0.65 0.16 38);
 }
 
 @layer base {
@@ -130,7 +117,6 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans);
     /* 한국어 줄바꿈: 단어 중간에서 끊지 않는다 (suta) */
     word-break: keep-all;
     overflow-wrap: break-word;
