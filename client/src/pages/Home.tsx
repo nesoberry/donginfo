@@ -222,13 +222,13 @@ export default function Home() {
         {/* 코스프레 패키지 진입 배너 — 카드형, 첫 화면 */}
         <a
           href="/package?utm_source=home_banner"
-          className="mt-4 flex flex-col gap-3 rounded-xl bg-primary px-5 py-5 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+          className="mt-4 flex flex-col gap-3 rounded-xl bg-foreground px-5 py-5 text-background sm:flex-row sm:items-center sm:justify-between sm:gap-4"
         >
           <div className="min-w-0">
             <p className="text-lg font-bold leading-tight sm:text-xl">코스프레, 몸만 오세요</p>
-            <p className="mt-1 text-sm opacity-90">의상·가발·메이크업·촬영까지 한 번에 · 사전 신청 중</p>
+            <p className="mt-1 text-sm">의상·가발·메이크업·촬영까지 한 번에 · <span className="whitespace-nowrap">사전 신청 중</span></p>
           </div>
-          <span className="inline-flex w-full flex-shrink-0 items-center justify-center gap-1 rounded-full bg-primary-foreground px-5 py-2.5 text-sm font-semibold text-primary sm:w-auto">
+          <span className="inline-flex w-full flex-shrink-0 items-center justify-center gap-1 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground sm:w-auto">
             사전 신청하기
             <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </span>
@@ -289,7 +289,7 @@ export default function Home() {
                     tabIndex={0}
                     role="link"
                     aria-label={`${event.name} 상세 보기`}
-                    className="group cursor-pointer rounded-xl bg-primary p-5 sm:p-6 text-primary-foreground"
+                    className="group cursor-pointer rounded-xl border border-border border-l-4 border-l-primary bg-card p-5 sm:p-6 text-card-foreground"
                   >
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
