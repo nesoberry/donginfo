@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
           <p className="text-muted-foreground text-sm mb-6">
             동인 행사 알리미(이하 "서비스")는 「개인정보 보호법」 등 관련 법령을 준수하며,
             이용자의 개인정보를 보호하기 위해 다음과 같은 개인정보처리방침을 두고 있습니다.
-            <br />본 방침은 2026년 10월 19일부터 적용됩니다.
+            <br />본 방침은 (배포일)부터 적용됩니다.
           </p>
 
           <Section title="1. 수집하는 개인정보 항목">
@@ -95,11 +95,11 @@ export default function PrivacyPolicy() {
                 <tbody>
                   <tr className="border-t border-border">
                     <td className="px-4 py-2 text-muted-foreground">Google LLC</td>
-                    <td className="px-4 py-2 text-muted-foreground">로그인 인증(OAuth)</td>
+                    <td className="px-4 py-2 text-muted-foreground">로그인 인증(OAuth), 알림 메일 발송</td>
                   </tr>
                   <tr className="border-t border-border">
                     <td className="px-4 py-2 text-muted-foreground">Vercel Inc.</td>
-                    <td className="px-4 py-2 text-muted-foreground">프론트엔드 호스팅 및 서버 운영</td>
+                    <td className="px-4 py-2 text-muted-foreground">프론트엔드 호스팅, 방문 통계</td>
                   </tr>
                   <tr className="border-t border-border">
                     <td className="px-4 py-2 text-muted-foreground">Railway Corp.</td>
@@ -114,7 +114,58 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          <Section title="6. 정보주체의 권리·의무 및 행사 방법">
+          <Section title="6. 개인정보의 국외 이전">
+            <p className="text-sm text-muted-foreground mb-3">
+              서비스는 서비스 제공을 위해 아래와 같이 개인정보를 국외에서 처리·보관합니다.
+              이는 「개인정보 보호법」 제28조의8 제1항 제3호에 따른 처리위탁·보관입니다.
+            </p>
+            <div className="border border-border rounded-md overflow-hidden text-sm">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-muted">
+                    <th className="text-left px-4 py-2 font-medium text-foreground">이전받는 자(연락처)</th>
+                    <th className="text-left px-4 py-2 font-medium text-foreground">이전 국가</th>
+                    <th className="text-left px-4 py-2 font-medium text-foreground">이전 항목</th>
+                    <th className="text-left px-4 py-2 font-medium text-foreground">이전 목적</th>
+                    <th className="text-left px-4 py-2 font-medium text-foreground">이전 시기·방법</th>
+                    <th className="text-left px-4 py-2 font-medium text-foreground">보유·이용 기간</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-border">
+                    <td className="px-4 py-2 text-muted-foreground">Railway Corp. (privacy@railway.com)</td>
+                    <td className="px-4 py-2 text-muted-foreground">미국</td>
+                    <td className="px-4 py-2 text-muted-foreground">이메일, 이름(닉네임), 구글 계정 식별자, 알림 설정, 구독 행사, 사전 신청 정보(연락처, 관심 항목 등)</td>
+                    <td className="px-4 py-2 text-muted-foreground">백엔드 서버 운영, 데이터베이스 보관</td>
+                    <td className="px-4 py-2 text-muted-foreground">서비스 이용 시 네트워크로 전송</td>
+                    <td className="px-4 py-2 text-muted-foreground">이 방침의 보유 기간까지</td>
+                  </tr>
+                  <tr className="border-t border-border">
+                    <td className="px-4 py-2 text-muted-foreground">Vercel Inc. (privacy@vercel.com)</td>
+                    <td className="px-4 py-2 text-muted-foreground">미국 등</td>
+                    <td className="px-4 py-2 text-muted-foreground">접속 기록, 방문 통계 정보</td>
+                    <td className="px-4 py-2 text-muted-foreground">웹사이트 호스팅, 방문 통계</td>
+                    <td className="px-4 py-2 text-muted-foreground">서비스 이용 시 네트워크로 전송</td>
+                    <td className="px-4 py-2 text-muted-foreground">이 방침의 보유 기간까지</td>
+                  </tr>
+                  <tr className="border-t border-border">
+                    <td className="px-4 py-2 text-muted-foreground">Google LLC (<a href="https://support.google.com/policies/contact/data_privacy_office" className="text-primary underline">Google 개인정보 문의 양식</a>)</td>
+                    <td className="px-4 py-2 text-muted-foreground">미국 등</td>
+                    <td className="px-4 py-2 text-muted-foreground">이메일, 이름(닉네임), 구글 계정 식별자</td>
+                    <td className="px-4 py-2 text-muted-foreground">로그인 인증, 알림 메일 발송</td>
+                    <td className="px-4 py-2 text-muted-foreground">로그인·메일 발송 시 네트워크로 전송</td>
+                    <td className="px-4 py-2 text-muted-foreground">이 방침의 보유 기간까지</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              이용자는 국외 이전을 거부할 수 있습니다. 거부하려면 위 보호책임자 이메일로 요청하시면 됩니다.
+              다만 서비스의 서버가 국외에 있어, 거부하시면 로그인·알림·사전 신청 기능을 이용할 수 없습니다.
+            </p>
+          </Section>
+
+          <Section title="7. 정보주체의 권리·의무 및 행사 방법">
             <p className="text-sm text-muted-foreground mb-2">이용자는 언제든지 다음의 권리를 행사할 수 있습니다.</p>
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mb-2">
               <li>개인정보 열람 요청</li>
@@ -128,14 +179,14 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          <Section title="7. 개인정보의 파기 절차 및 방법">
+          <Section title="8. 개인정보의 파기 절차 및 방법">
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
               <li><span className="font-medium text-foreground">파기 절차:</span> 수집·이용 목적이 달성된 개인정보는 지체 없이 파기합니다.</li>
               <li><span className="font-medium text-foreground">파기 방법:</span> 전자적 파일 형태의 정보는 복구가 불가능한 방법으로 영구 삭제합니다.</li>
             </ul>
           </Section>
 
-          <Section title="8. 개인정보의 안전성 확보 조치">
+          <Section title="9. 개인정보의 안전성 확보 조치">
             <p className="text-sm text-muted-foreground mb-2">서비스는 개인정보 보호를 위해 다음과 같은 조치를 취하고 있습니다.</p>
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
               <li>개인정보에 대한 접근 권한 제한</li>
@@ -145,7 +196,7 @@ export default function PrivacyPolicy() {
             </ul>
           </Section>
 
-          <Section title="9. 쿠키 등 자동 수집 장치의 운영">
+          <Section title="10. 쿠키 등 자동 수집 장치의 운영">
             <p className="text-sm text-muted-foreground">
               서비스는 로그인 상태 유지 등을 위해 쿠키(cookie)를 사용할 수 있습니다.
               이용자는 웹 브라우저 설정을 통해 쿠키 저장을 거부할 수 있으며,
@@ -153,22 +204,22 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          <Section title="10. 개인정보 보호책임자 및 연락처">
+          <Section title="11. 개인정보 보호책임자 및 연락처">
             <p className="text-sm text-muted-foreground mb-1">
               개인정보 처리에 관한 문의, 불만, 권리 행사는 아래로 연락해 주시기 바랍니다.
             </p>
             <ul className="list-none text-sm text-muted-foreground space-y-1">
-              <li><span className="font-medium text-foreground">운영자(개인정보 보호책임자):</span> 동인 행사 알리미 운영자</li>
+              <li><span className="font-medium text-foreground">운영자(개인정보 보호책임자):</span> 하성준 (운영자)</li>
               <li>
                 <span className="font-medium text-foreground">이메일:</span>{" "}
-                <a href="mailto:nesoberry8@gmail.com" className="text-primary underline">
-                  nesoberry8@gmail.com
+                <a href="mailto:cosuhare.official@gmail.com" className="text-primary underline">
+                  cosuhare.official@gmail.com
                 </a>
               </li>
             </ul>
           </Section>
 
-          <Section title="11. 권익침해 구제 방법">
+          <Section title="12. 권익침해 구제 방법">
             <p className="text-sm text-muted-foreground mb-2">
               개인정보 침해에 대한 신고나 상담이 필요한 경우 아래 기관에 문의하실 수 있습니다.
             </p>
@@ -180,14 +231,15 @@ export default function PrivacyPolicy() {
             </ul>
           </Section>
 
-          <Section title="12. 개인정보처리방침의 변경">
+          <Section title="13. 개인정보처리방침의 변경">
             <p className="text-sm text-muted-foreground mb-2">
               본 개인정보처리방침은 법령·정책 또는 서비스 내용의 변경에 따라 수정될 수 있으며,
               변경 시 서비스 내 공지를 통해 안내합니다.
             </p>
             <ul className="list-none text-sm text-muted-foreground space-y-1">
-              <li><span className="font-medium text-foreground">공고일자:</span> 2026년 10월 19일</li>
-              <li><span className="font-medium text-foreground">시행일자:</span> 2026년 10월 19일</li>
+              <li><span className="font-medium text-foreground">공고일자:</span> (배포일)</li>
+              <li><span className="font-medium text-foreground">시행일자:</span> (배포일)</li>
+              <li><span className="font-medium text-foreground">변경:</span> 보호책임자 표기, 국외 이전 조항 추가</li>
             </ul>
           </Section>
 
