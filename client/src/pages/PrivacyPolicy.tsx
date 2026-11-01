@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
           <p className="text-muted-foreground text-sm mb-6">
             동인 행사 알리미(이하 "서비스")는 「개인정보 보호법」 등 관련 법령을 준수하며,
             이용자의 개인정보를 보호하기 위해 다음과 같은 개인정보처리방침을 두고 있습니다.
-            <br />본 방침은 (배포일)부터 적용됩니다.
+            <br />본 방침은 2026년 11월 2일부터 적용됩니다.
           </p>
 
           <Section title="1. 수집하는 개인정보 항목">
@@ -119,7 +119,7 @@ export default function PrivacyPolicy() {
               서비스는 서비스 제공을 위해 아래와 같이 개인정보를 국외에서 처리·보관합니다.
               이는 「개인정보 보호법」 제28조의8 제1항 제3호에 따른 처리위탁·보관입니다.
             </p>
-            <div className="border border-border rounded-md overflow-hidden text-sm">
+            <div className="border border-border rounded-md overflow-x-auto text-sm">
               <table className="w-full">
                 <thead>
                   <tr className="bg-muted">
@@ -160,7 +160,7 @@ export default function PrivacyPolicy() {
               </table>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              이용자는 국외 이전을 거부할 수 있습니다. 거부하려면 위 보호책임자 이메일로 요청하시면 됩니다.
+              이용자는 국외 이전을 거부할 수 있습니다. 거부하려면 11. 개인정보 보호책임자 및 연락처의 이메일로 요청하시면 됩니다.
               다만 서비스의 서버가 국외에 있어, 거부하시면 로그인·알림·사전 신청 기능을 이용할 수 없습니다.
             </p>
           </Section>
@@ -209,7 +209,7 @@ export default function PrivacyPolicy() {
               개인정보 처리에 관한 문의, 불만, 권리 행사는 아래로 연락해 주시기 바랍니다.
             </p>
             <ul className="list-none text-sm text-muted-foreground space-y-1">
-              <li><span className="font-medium text-foreground">운영자(개인정보 보호책임자):</span> 하성준 (운영자)</li>
+              <li><span className="font-medium text-foreground">운영자(개인정보 보호책임자):</span> 하성준</li>
               <li>
                 <span className="font-medium text-foreground">이메일:</span>{" "}
                 <a href="mailto:cosuhare.official@gmail.com" className="text-primary underline">
@@ -237,8 +237,9 @@ export default function PrivacyPolicy() {
               변경 시 서비스 내 공지를 통해 안내합니다.
             </p>
             <ul className="list-none text-sm text-muted-foreground space-y-1">
-              <li><span className="font-medium text-foreground">공고일자:</span> (배포일)</li>
-              <li><span className="font-medium text-foreground">시행일자:</span> (배포일)</li>
+              <li><span className="font-medium text-foreground">공고일자:</span> 2026년 11월 2일</li>
+              <li><span className="font-medium text-foreground">시행일자:</span> 2026년 11월 2일</li>
+              <li><span className="font-medium text-foreground">이전 방침:</span> 2026년 10월 19일 시행</li>
               <li><span className="font-medium text-foreground">변경:</span> 보호책임자 표기, 국외 이전 조항 추가</li>
             </ul>
           </Section>
