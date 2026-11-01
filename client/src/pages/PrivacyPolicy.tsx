@@ -1,9 +1,14 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function PrivacyPolicy() {
   const [, setLocation] = useLocation();
+  usePageMeta({
+    title: "개인정보처리방침 | 코스하레",
+    description: "코스하레의 개인정보 수집 항목, 이용 목적, 보유 기간, 처리 위탁과 국외 이전 안내입니다.",
+  });
 
   return (
     <div className="min-h-screen bg-background">
