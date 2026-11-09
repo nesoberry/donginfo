@@ -10,6 +10,7 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 export const VERIFIED_FREE_EVENT_IDS: number[] = [
   90035, // 한일축제한마당 2026 in Seoul — "입장료는 무료입니다" 공식 명시
   90037, // 제5회 대구콘텐츠페어 — 공식 사전관람신청(무료)
+  90044, // 2026 네코비무 고양 서브컬처 페스티벌 — 설명에 "입장료 무료" 명시, 11/01 기사 2건 교차 확인
 ];
 
 // 현재 origin을 안전하게 가져오는 함수
